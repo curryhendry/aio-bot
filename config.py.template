@@ -1,0 +1,54 @@
+"""
+config.py — 配置文件模板
+复制此文件为 config.py，填入真实 Token 后使用
+"""
+
+# ============================================================
+# 必填配置
+# ============================================================
+
+# Telegram Bot Token（找 @BotFather 获取）
+BOT_TOKEN = ""
+
+# 允许使用机器人的 Telegram 用户 ID（多个用逗号分隔）
+# 如何获取：给 @userinfobot 发消息，它会返回你的 ID
+ALLOWED_IDS = []
+
+# ============================================================
+# API Token
+# ============================================================
+
+# TMDB API Token（https://www.themoviedb.org/settings/api）
+TMDB_TOKEN = ""
+
+# NeoDB Token（https://neodb.cc/oauth2/applications/）
+NEODB_TOKEN = ""
+
+# Rebrickable API Key（https://rebrickable.com/api/register/）
+RB_KEY = ""
+
+# ============================================================
+# MeTube 配置
+# ============================================================
+
+# MeTube 服务地址（容器内部通信用，同一 docker network 下用容器名）
+METUBE_URL = "http://MeTube:8081"
+
+# MeTube Docker 容器名称
+METUBE_CONTAINER_NAME = "MeTube"
+
+# Cookies 文件路径
+COOKIES_FILE = "/cookies/cookies.txt"
+
+# ============================================================
+# 可选配置
+# ============================================================
+
+# 代理（留空表示不使用）
+PROXY = ""
+
+# 下载文件保存目录
+DOWNLOAD_PATH = "/downloads"
+
+# 日志等级：DEBUG / INFO / WARNING / ERROR
+LOG_LEVEL = "INFO"
