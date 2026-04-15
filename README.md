@@ -134,6 +134,7 @@ aio-bot/
 ├── main.py                 # 入口：系统模块（Start / Status / Help）
 ├── config.py.template      # 配置模板（不含真实token）
 ├── database.py             # SQLite 数据库连接层（人仔映射）
+├── lego_db.sqlite        # 乐高人仔本地数据库（7.5MB）
 ├── services/
 │   ├── __init__.py
 │   ├── lego.py             # 乐高模块（独立 ConversationHandler）
