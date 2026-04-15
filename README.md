@@ -27,11 +27,9 @@
 🔍 搜图书/电影/电视  ｜  🧱 乐高查询
 ⚙️ 系统状态
 ```
-![80](https://img.curryhendry.com/乱七八糟/All-in-One%20Telegram%20Bot/IMG_5915.png?sign=gScxRaKv67m6x2Ov-O6O4-fJNWSOWFWBuXGlZ_fyFFo=:0) 
-![80](https://img.curryhendry.com/乱七八糟/All-in-One%20Telegram%20Bot/IMG_5912.png?sign=M2lOsekNgCbNKrXGADCmv3nvk_XF6EPpVHoRfpQ_b3k=:0)
+<img src="https://img.curryhendry.com/乱七八糟/All-in-One%20Telegram%20Bot/IMG_5915.png" width="400">  <img src="https://img.curryhendry.com/乱七八糟/All-in-One%20Telegram%20Bot/IMG_5912.png" width="400">
 
-![80](https://img.curryhendry.com/乱七八糟/All-in-One%20Telegram%20Bot/IMG_5916.png?sign=l9ccvpfYRWi9td17JG_1p_hHy1ARFdxJ7N8HLvIBCH8=:0) 
-![80](https://img.curryhendry.com/乱七八糟/All-in-One%20Telegram%20Bot/IMG_5914.png?sign=A5MyyF3nNsZf8qiFfD_evKi2ALyzIK1IYNU7Cnyg0TQ=:0)
+<img src="https://img.curryhendry.com/乱七八糟/All-in-One%20Telegram%20Bot/IMG_5916.png" width="400">  <img src="https://img.curryhendry.com/乱七八糟/All-in-One%20Telegram%20Bot/IMG_5914.png" width="400">
 
 ---
 
