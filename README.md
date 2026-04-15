@@ -31,6 +31,8 @@
 
 <img src="https://img.curryhendry.com/乱七八糟/All-in-One%20Telegram%20Bot/IMG_5916.png" width="400">  <img src="https://img.curryhendry.com/乱七八糟/All-in-One%20Telegram%20Bot/IMG_5914.png" width="400">
 
+<img src="https://img.curryhendry.com/乱七八糟/All-in-One%20Telegram%20Bot/IMG_5917.png" width="400">  <img src="https://img.curryhendry.com/乱七八糟/All-in-One%20Telegram%20Bot/IMG_5918.png" width="400">
+
 ---
 
 ## 快速部署
