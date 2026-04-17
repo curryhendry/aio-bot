@@ -41,26 +41,56 @@
 
 - VPS（本文以 Ubuntu 为例）
 - Docker 已安装
-- Telegram Bot Token（找 [@BotFather](https://t.me/BotFather) 创建）
 
-### 1. 获取 API Key
+### 步骤 1：创建 Telegram Bot
+
+1. 在 Telegram 搜索 **@BotFather**
+2. 发送 `/newbot`
+3. 按提示输入机器人名称（如 `MyAIOBot`）
+4. 按提示输入机器人用户名（如 `my_aio_bot`，必须以 `bot` 结尾）
+5. BotFather 会返回 **Bot Token**，格式如 `123456789:ABCdefGHIjklMNOpqrsTUVwxyz`
+
+> 💡 保存好 Token，后面配置要用
+
+### 步骤 2：获取你的 Chat ID
+
+机器人需要知道谁是主人，通过 Chat ID 白名单控制。
+
+1. 在 Telegram 搜索 **@get_id_bot**
+2. 发送任意消息
+3. 它会回复你的 Chat ID（一串数字）
+
+> 💡 多人使用时，把每个人的 Chat ID 都加入白名单
+
+### 步骤 3：获取 API Key
 
 | 服务 | 获取地址 | 说明 |
 |------|----------|------|
-| Telegram Bot Token | [@BotFather](https://t.me/BotFather) | 必填 |
-| Telegram ChatID | [@get_id_bot](https://t.me/get_id_bot) | 强烈建议填写 |
-| NeoDB Token | https://neodb.cc/oauth2/applications/ | 创建应用获取 |
-| TMDB Token | https://www.themoviedb.org/settings/api | 注册后申请 API Key |
-| Rebrickable Key | https://rebrickable.com/api/register/ | 注册后申请 |
-| MeTube Cookie | Chrome获取Cookies插件 | YouTube/BiliBili 下载需要（自行解决） |
+| NeoDB Token | https://neodb.cc/oauth2/applications/ | 创建应用获取，用于图书/影视搜索 |
+| TMDB Token | https://www.themoviedb.org/settings/api | 注册后申请 API Key，用于影视搜索 |
+| Rebrickable Key | https://rebrickable.com/api/register/ | 注册后申请，用于乐高数据 |
 
-### 2. 配置 config.py
+> ⚠️ MeTube 下载 YouTube/B站需要 Cookie，需自行解决（Chrome 插件获取）
+
+### 步骤 4：克隆仓库并配置
+
+```bash
+# 克隆仓库
+git clone https://github.com/curryhendry/aio-bot.git /home/ubuntu/aio_bot
+cd /home/ubuntu/aio_bot
+
+# 复制配置模板
+cp config.py.template config.py
+
+# 编辑配置（填入真实 Token）
+nano config.py
+```
+
+`config.py` 内容示例：
 
 ```python
-# config.py  — 复制自 config.py.template，填入真实值
-
-BOT_TOKEN = "你的Telegram Bot Token"
-ALLOWED_IDS = [你的Telegram用户ID]   # 多人白名单用逗号分隔
+BOT_TOKEN = "123456789:ABCdefGHIjklMNOpqrsTUVwxyz"  # 你的 Bot Token
+ALLOWED_IDS = [123456789]  # 你的 Chat ID，多人用逗号分隔
 
 TMDB_TOKEN = "你的TMDB Token"
 NEODB_TOKEN = "你的NeoDB Token"
@@ -70,32 +100,29 @@ METUBE_URL = "http://MeTube:8081"
 METUBE_CONTAINER_NAME = "MeTube"
 ```
 
-> **安全提示**：不要将 config.py 提交到 GitHub，敏感信息只存在于 VPS 本地。GitHub 仅保存 `config.py.template` 模板文件。
+> 🔒 **安全提示**：`config.py` 含真实 Token，不要提交到 GitHub！
 
-### 3. 运行容器
+### 步骤 5：部署 Docker 容器
 
 ```bash
-# 克隆仓库
-git clone https://github.com/curryhendry/aio-bot.git /home/ubuntu/aio_bot
 cd /home/ubuntu/aio_bot
 
-# 构建镜像
+# 构建机器人镜像
 docker build -t aio_bot:latest .
 
-# 创建 docker 网络（如果尚未创建）
+# 创建 Docker 网络（机器人与 MeTube 通信用）
 docker network create aio-net 2>/dev/null || true
 
-# 创建 MeTube 容器（如果尚未创建）
+# 部署 MeTube（视频下载器）
 docker run -d \
   --name MeTube \
   --network aio-net \
   --restart=unless-stopped \
   -p 8083:8081 \
-  -v /path/to/cookies:/app/data \
-  curlimages/curl:latest \
-  sh -c "echo '配置你的MeTube cookie后启动'"
+  -v /home/ubuntu/metube_downloads:/downloads \
+  ghcr.io/alexta69/metube:latest
 
-# 运行机器人
+# 部署机器人
 docker run -d \
   --name All-in-One_tgbot \
   --network aio-net \
@@ -104,23 +131,32 @@ docker run -d \
   -v /home/ubuntu/aio_bot:/aio_bot \
   -v /home/ubuntu/aio_bot/downloads:/downloads \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  -v /path/to/cookies:/cookies \
   -e TZ=Asia/Shanghai \
   aio_bot:latest \
   python main.py
 ```
 
-> MeTube 与机器人必须在同一 `aio-net` 网络下才能互通。
+> 📌 MeTube 与机器人必须在同一 `aio-net` 网络下才能互通
 
-### 4. 更新版本
+### 步骤 6：开始使用
+
+在 Telegram 搜索你的机器人用户名，发送 `/start` 即可看到菜单：
+
+```
+🔍 搜图书/电影/电视  ｜  🧱 乐高查询
+⚙️ 系统状态
+```
+
+**常用操作：**
+- 发送链接（YouTube/B站/抖音）→ 自动下载
+- 发送图片 → 生成 Google Lens 搜索链接
+- 点击菜单按钮 → 进入对应功能
+
+### 更新版本
 
 ```bash
 cd /home/ubuntu/aio_bot
-
-# 拉取最新代码
 git pull
-
-# 重启容器
 docker restart All-in-One_tgbot
 ```
 
@@ -134,7 +170,7 @@ aio-bot/
 ├── main.py                 # 入口：系统模块（Start / Status / Help）
 ├── config.py.template      # 配置模板（不含真实token）
 ├── database.py             # SQLite 数据库连接层（人仔映射）
-├── lego_db.sqlite        # 乐高人仔本地数据库（7.5MB）
+├── lego_db.sqlite          # 乐高人仔本地数据库（7.5MB）
 ├── services/
 │   ├── __init__.py
 │   ├── lego.py             # 乐高模块（独立 ConversationHandler）
