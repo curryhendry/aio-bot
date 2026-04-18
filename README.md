@@ -203,40 +203,6 @@ aio-bot/
 
 ---
 
-## 开发说明
-
-### 本地开发环境
-
-```bash
-# 克隆仓库
-git clone https://github.com/curryhendry/aio-bot.git ~/Projects/aio-bot
-cd ~/Projects/aio-bot
-
-# 安装依赖
-pip install python-telegram-bot flask psutil requests yt-dlp docker
-
-# 复制配置
-cp config.py.template config.py
-# 编辑 config.py 填入真实 Token
-
-# 本地运行
-python main.py
-```
-
-### 发布流程
-
-```bash
-./deploy.sh
-```
-
-`deploy.sh` 会自动：
-1. 读取 `CHANGELOG.md` 生成版本号
-2. 更新 `config.py.template`（如有变化）
-3. 提交并推送
-4. 打 Git Tag
-
----
-
 ## 更新日志
 
 详见 [CHANGELOG.md](CHANGELOG.md)
