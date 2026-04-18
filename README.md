@@ -27,13 +27,16 @@
 🔍 搜图书/电影/电视  ｜  🧱 乐高查询
 ⚙️ 系统状态
 ```
-<img src="https://img.curryhendry.com/乱七八糟/All-in-One%20Telegram%20Bot/IMG_5915.png" width="400">  <img src="https://img.curryhendry.com/乱七八糟/All-in-One%20Telegram%20Bot/IMG_5912.png" width="400">
 
-<img src="https://img.curryhendry.com/乱七八糟/All-in-One%20Telegram%20Bot/IMG_5916.png" width="400">  <img src="https://img.curryhendry.com/乱七八糟/All-in-One%20Telegram%20Bot/IMG_5914.png" width="400">
+**图书/电影/电视 搜索：**
+<img src="https://github.com/user-attachments/assets/bdb67823-19de-4778-81a5-08fe19391dfa" width="400" />  <img src="https://github.com/user-attachments/assets/9750ff7f-6c29-46e0-9adc-9672f096d1b7" width="400" />
 
-<img src="https://img.curryhendry.com/乱七八糟/All-in-One%20Telegram%20Bot/IMG_5917.png" width="400">  <img src="https://img.curryhendry.com/乱七八糟/All-in-One%20Telegram%20Bot/IMG_5918.png" width="400">
+**乐高产品查询：**
+<img src="https://github.com/user-attachments/assets/b7edd093-c512-4929-8ade-9ea875595cd5" width="400" />  <img src="https://github.com/user-attachments/assets/1a5bcbb3-dc33-483f-aa37-8ad8e040545d" width="400" />
 
----
+**视频下载：**
+<img src="https://github.com/user-attachments/assets/88e3ddda-20f9-437c-aab3-dd78acfdef97" width="400" />
+
 
 ## 快速部署
 
