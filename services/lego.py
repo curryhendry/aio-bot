@@ -2,7 +2,7 @@ import logging, requests, asyncio, math, re, time, html, os, sqlite3, threading,
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.constants import ParseMode
 from telegram.ext import ConversationHandler, CallbackQueryHandler, CommandHandler, MessageHandler, filters
-from config import RB_BASE, RB_KEY, FAKE_HEADERS, USD_CNY_RATE, LEGO_INPUT, DB_FILE, RB_CSV_URL
+from config import RB_BASE, RB_KEY, FAKE_HEADERS, USD_CNY_RATE, LEGO_INPUT, DB_FILE, RB_CSV_URL, FLARESOLVERR_URL
 
 logger = logging.getLogger(__name__)
 SESSION = requests.Session()
@@ -133,6 +133,22 @@ def do_download_csv(report_func):
                 return True, f"✅ 导入完成\n📊 总数: {count}\n🆕 新增: {added}\n♻️ 更新: {count - added}"
     except Exception as e: return False, f"异常: {str(e)[:50]}"
 
+def _cf_fetch(url, session_id="rebrickable"):
+    """通过 FlareSolverr 绕过 Cloudflare 获取页面 HTML"""
+    try:
+        resp = requests.post(
+            f"{FLARESOLVERR_URL}/v1",
+            json={"cmd": "request.get", "url": url, "maxTimeout": 60000, "session": session_id},
+            timeout=120
+        )
+        data = resp.json()
+        if data.get("status") == "ok":
+            return data["solution"]["response"]
+        logger.warning(f"FlareSolverr 异常: {data.get('status')} {data.get('message', '')}")
+    except Exception as e:
+        logger.warning(f"FlareSolverr 请求失败: {e}")
+    return None
+
 def do_scrape_missing(report_func):
     try:
         report_func("🔍 扫描待补全数据...")
@@ -141,7 +157,9 @@ def do_scrape_missing(report_func):
         targets = [row[0] for row in c.fetchall()]; conn.close()
         total = len(targets); success = 0; fail = 0
         if total == 0: return True, "✅ 数据已完整，无需补全。"
-        session = requests.Session(); session.headers.update(FAKE_HEADERS)
+        if not FLARESOLVERR_URL:
+            return False, "⚠️ 未配置 FlareSolverr\n请先部署: docker run -d --name flaresolverr --restart unless-stopped -p 8191:8191 ghcr.io/flaresolverr/flaresolverr:latest\n然后设置环境变量 FLARESOLVERR_URL=http://<IP>:8191"
+        report_func("🕷️ 通过 FlareSolverr 绕过 Cloudflare...")
         last_report = time.time(); consecutive_fail = 0
         for idx, rb_id in enumerate(targets):
             if not UPDATE_STATUS["active"]: return False, "🛑 任务已手动停止"
@@ -149,9 +167,9 @@ def do_scrape_missing(report_func):
                 report_func(f"🕷️ 补全进度: {idx}/{total}\n✅ 成功: {success}\n❌ 未找到: {fail}")
                 last_report = time.time()
             try:
-                resp = session.get(f"https://rebrickable.com/minifigs/{rb_id}/", timeout=10)
-                if resp.status_code == 200:
-                    bl_id = None; txt = resp.text
+                txt = _cf_fetch(f"https://rebrickable.com/minifigs/{rb_id}/")
+                if txt:
+                    bl_id = None
                     m1 = re.search(r'bricklink\.com.*?catalogitem\.page\?M=([a-zA-Z0-9]+)', txt)
                     if m1: bl_id = m1.group(1)
                     else:
@@ -162,14 +180,15 @@ def do_scrape_missing(report_func):
                         conn.execute("UPDATE minifig_map SET ext_id = ? WHERE rb_id = ?", (bl_id, rb_id))
                         conn.commit(); conn.close()
                         success += 1; consecutive_fail = 0
-                    else: fail += 1
+                    else:
+                        fail += 1
+                        logger.info(f"爬虫 {rb_id}: 页面无第三方ID")
                 else:
-                    fail += 1
-                    if resp.status_code == 403:
-                        consecutive_fail += 1; time.sleep(5)
-                        if consecutive_fail > 5: return False, "⚠️ 触发反爬，任务暂停"
-                time.sleep(1.5)
-            except: pass
+                    fail += 1; consecutive_fail += 1
+                    if consecutive_fail > 5: return False, "⚠️ FlareSolverr 连续失败，请检查服务状态"
+                time.sleep(3)
+            except Exception as e:
+                fail += 1; logger.warning(f"爬虫 {rb_id} 异常: {e}"); time.sleep(2)
         return True, f"✅ 补全结束\n成功: {success} / 未找到: {fail}"
     except Exception as e: return False, f"爬虫异常: {e}"
 
