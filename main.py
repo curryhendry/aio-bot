@@ -5,6 +5,9 @@ from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes, ConversationHandler
 from config import BOT_TOKEN, PORT, DB_FILE, SEARCH_WAIT, LEGO_INPUT, restricted, logger, CHANGELOG_FILE, ALLOWED_IDS
 
+# 抑制 httpx 轮询日志刷屏
+logging.getLogger("httpx").setLevel(logging.WARNING)
+
 try:
     with open("CHANGELOG.md", "r", encoding="utf-8") as _f:
         VERSION = next((ln.strip().replace("## ", "") for ln in _f if ln.startswith("## v")), "未知版本")
