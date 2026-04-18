@@ -1,4 +1,5 @@
 import logging, requests, asyncio, math, re, time, html, os, sqlite3, threading, zipfile, io, csv
+import cloudscraper
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.constants import ParseMode
 from telegram.ext import ConversationHandler, CallbackQueryHandler, CommandHandler, MessageHandler, filters
@@ -141,7 +142,10 @@ def do_scrape_missing(report_func):
         targets = [row[0] for row in c.fetchall()]; conn.close()
         total = len(targets); success = 0; fail = 0
         if total == 0: return True, "✅ 数据已完整，无需补全。"
-        session = requests.Session(); session.headers.update(FAKE_HEADERS)
+        session = cloudscraper.create_scraper(
+            browser={'browser': 'chrome', 'platform': 'windows', 'mobile': False}
+        )
+        session.headers.update(FAKE_HEADERS)
         last_report = time.time(); consecutive_fail = 0
         for idx, rb_id in enumerate(targets):
             if not UPDATE_STATUS["active"]: return False, "🛑 任务已手动停止"
@@ -149,7 +153,7 @@ def do_scrape_missing(report_func):
                 report_func(f"🕷️ 补全进度: {idx}/{total}\n✅ 成功: {success}\n❌ 未找到: {fail}")
                 last_report = time.time()
             try:
-                resp = session.get(f"https://rebrickable.com/minifigs/{rb_id}/", timeout=10)
+                resp = session.get(f"https://rebrickable.com/minifigs/{rb_id}/", timeout=15)
                 if resp.status_code == 200:
                     bl_id = None; txt = resp.text
                     m1 = re.search(r'bricklink\.com.*?catalogitem\.page\?M=([a-zA-Z0-9]+)', txt)
@@ -165,11 +169,18 @@ def do_scrape_missing(report_func):
                     else: fail += 1
                 else:
                     fail += 1
+                    logger.warning(f"爬虫 {rb_id}: HTTP {resp.status_code}")
                     if resp.status_code == 403:
                         consecutive_fail += 1; time.sleep(5)
                         if consecutive_fail > 5: return False, "⚠️ 触发反爬，任务暂停"
-                time.sleep(1.5)
-            except: pass
+                    elif resp.status_code == 429:
+                        consecutive_fail += 1; time.sleep(30)
+                        if consecutive_fail > 3: return False, "⚠️ 触发频率限制，任务暂停"
+                time.sleep(2)
+            except Exception as e:
+                fail += 1
+                logger.warning(f"爬虫 {rb_id} 异常: {type(e).__name__}: {e}")
+                time.sleep(1)
         return True, f"✅ 补全结束\n成功: {success} / 未找到: {fail}"
     except Exception as e: return False, f"爬虫异常: {e}"
 
