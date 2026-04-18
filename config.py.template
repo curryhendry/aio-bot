@@ -1,54 +1,114 @@
 """
-config.py — 配置文件模板
-复制此文件为 config.py，填入真实 Token 后使用
+config.py — 配置文件
+复制 config.py.template 重命名为 config.py，填入真实 Token 后使用
 """
+
+import os, logging
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # ============================================================
 # 必填配置
 # ============================================================
 
 # Telegram Bot Token（找 @BotFather 获取）
-BOT_TOKEN = ""
+BOT_TOKEN = os.getenv("BOT_TOKEN", "")
 
-# 允许使用机器人的 Telegram 用户 ID（多个用逗号分隔）
+# 允许使用机器人的 Telegram 用户 ID
+# 多个用逗号分隔，如 [ALLOWED_IDS_DEFAULT, 987654321]
 # 如何获取：给 @userinfobot 发消息，它会返回你的 ID
-ALLOWED_IDS = []
+ALLOWED_IDS = []  # TODO: 填入你的 Telegram ID
+
+# ============================================================
+# 网络配置
+# ============================================================
+
+# 监听端口（本地调试或 --network host 模式时使用）
+PORT = int(os.getenv("PORT", "8080"))
+
+# 时区
+TZ = os.getenv("TZ", "Asia/Shanghai")
+
+# 代理（留空表示不使用）
+PROXY = ""
 
 # ============================================================
 # API Token
 # ============================================================
 
 # TMDB API Token（https://www.themoviedb.org/settings/api）
-TMDB_TOKEN = ""
+TMDB_TOKEN = os.getenv("TMDB_TOKEN", "")
 
 # NeoDB Token（https://neodb.cc/oauth2/applications/）
-NEODB_TOKEN = ""
+NEODB_TOKEN = os.getenv("NEODB_TOKEN", "")
 
 # Rebrickable API Key（https://rebrickable.com/api/register/）
-RB_KEY = ""
+RB_KEY = os.getenv("RB_KEY", "")
+
+# ============================================================
+# 乐高数据库配置
+# ============================================================
+
+RB_BASE = "https://rebrickable.com/api/v3/lego"
+FAKE_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
+}
+USD_CNY_RATE = 7.3  # 美元兑人民币汇率（可按需调整）
+RB_CSV_URL = "https://cdn.rebrickable.com/media/downloads/minifigs.csv.zip"
 
 # ============================================================
 # MeTube 配置
 # ============================================================
 
-# MeTube 服务地址（容器内部通信用，同一 docker network 下用容器名）
-METUBE_URL = "http://MeTube:8081"
+# MeTube 服务地址
+#   --network host 模式：填写宿主机地址，如 http://127.0.0.1:8081
+#   同 Docker 网络内：填写容器名，如 http://MeTube:8081
+METUBE_URL = os.getenv("METUBE_URL", "http://127.0.0.1:8081")
 
 # MeTube Docker 容器名称
 METUBE_CONTAINER_NAME = "MeTube"
 
-# Cookies 文件路径
+# Cookies 文件路径（容器内）
 COOKIES_FILE = "/cookies/cookies.txt"
 
 # ============================================================
-# 可选配置
+# 路径与数据库
 # ============================================================
 
-# 代理（留空表示不使用）
-PROXY = ""
+DB_FILE = os.path.join(BASE_DIR, "lego_db.sqlite")
+DOWNLOAD_DIR = "/downloads"
+CHANGELOG_FILE = os.path.join(BASE_DIR, "CHANGELOG.md")
 
-# 下载文件保存目录
-DOWNLOAD_PATH = "/downloads"
+# ============================================================
+# 日志
+# ============================================================
 
-# 日志等级：DEBUG / INFO / WARNING / ERROR
-LOG_LEVEL = "INFO"
+logging.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    level=logging.INFO
+)
+logger = logging.getLogger(__name__)
+
+# ============================================================
+# 状态常量（勿改）
+# ============================================================
+
+LEGO_INPUT = 1
+SEARCH_WAIT = 2
+
+# ============================================================
+# 权限装饰器（勿改）
+# ============================================================
+
+from functools import wraps
+
+def restricted(func):
+    @wraps(func)
+    async def wrapped(update, context, *args, **kwargs):
+        if not update.effective_user:
+            return
+        user_id = update.effective_user.id
+        if ALLOWED_IDS and user_id not in ALLOWED_IDS:
+            return
+        return await func(update, context, *args, **kwargs)
+    return wrapped
