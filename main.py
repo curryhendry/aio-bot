@@ -194,7 +194,7 @@ async def reboot_cmd(u, c):
     """处理 /reboot 命令"""
     await c.bot.send_message(u.effective_chat.id, "♻️ 正在重启机器人...")
     try:
-        container_name = os.environ.get("HOSTNAME", "All-in-One_tgbot")
+        container_name = "All-in-One_tgbot"
         s = _sock_mod.socket(_sock_mod.AF_UNIX, _sock_mod.SOCK_STREAM)
         s.connect("/var/run/docker.sock")
         s.settimeout(15)
@@ -219,7 +219,7 @@ async def restart_bot_callback(u, c):
     query = u.callback_query
     await query.answer("♻️ 正在重启机器人...")
     try:
-        container_name = os.environ.get("HOSTNAME", "All-in-One_tgbot")
+        container_name = "All-in-One_tgbot"
         s = _sock_mod.socket(_sock_mod.AF_UNIX, _sock_mod.SOCK_STREAM)
         s.connect("/var/run/docker.sock")
         s.settimeout(15)
