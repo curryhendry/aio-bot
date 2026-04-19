@@ -1,8 +1,8 @@
-import logging, requests, asyncio, math, re, time, html, os, sqlite3, threading, zipfile, io, csv
+import logging, requests, asyncio, math, re, time, html, os, sqlite3, threading, zipfile, io, csv, docker
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.constants import ParseMode
 from telegram.ext import ConversationHandler, CallbackQueryHandler, CommandHandler, MessageHandler, filters
-from config import RB_BASE, RB_KEY, FAKE_HEADERS, USD_CNY_RATE, LEGO_INPUT, DB_FILE, RB_CSV_URL, FLARESOLVERR_URL
+from config import RB_BASE, RB_KEY, FAKE_HEADERS, USD_CNY_RATE, LEGO_INPUT, DB_FILE, RB_CSV_URL, FLARESOLVERR_URL, FLARESOLVERR_CONTAINER_NAME
 
 logger = logging.getLogger(__name__)
 SESSION = requests.Session()
@@ -59,6 +59,41 @@ def resolve_fig_id(query):
             return target_id
         except: pass
     return q
+
+def check_flaresolverr_status():
+    """检查 FlareSolverr 容器状态"""
+    try:
+        client = docker.from_env()
+        for c in client.containers.list(all=True):
+            if FLARESOLVERR_CONTAINER_NAME in c.name or "flaresolverr" in c.name.lower():
+                return (True, f"运行中 ({c.name})") if c.status == 'running' else (False, f"已停止 ({c.name})")
+        return (False, "未找到容器")
+    except Exception as e: return (False, f"Docker失败: {str(e)}")
+
+def start_flaresolverr_container():
+    """启动 FlareSolverr 容器"""
+    try:
+        client = docker.from_env()
+        for c in client.containers.list(all=True):
+            if FLARESOLVERR_CONTAINER_NAME in c.name or "flaresolverr" in c.name.lower():
+                if c.status != 'running':
+                    c.start()
+                    return True, "已启动，预热中"
+                return True, "运行中"
+        return False, "未找到容器"
+    except Exception as e: return False, f"容器控制失败: {e}"
+
+def wait_for_flaresolverr(timeout=90):
+    """等待 FlareSolverr 服务就绪"""
+    start = time.time()
+    while time.time() - start < timeout:
+        try:
+            resp = requests.get(f"{FLARESOLVERR_URL}/health", timeout=5)
+            if resp.status_code == 200:
+                return True
+        except: pass
+        time.sleep(3)
+    return False
 
 def get_fig_bl_id(rb_uid):
     try:
@@ -157,8 +192,17 @@ def do_scrape_missing(report_func):
         targets = [row[0] for row in c.fetchall()]; conn.close()
         total = len(targets); success = 0; fail = 0
         if total == 0: return True, "✅ 数据已完整，无需补全。"
-        if not FLARESOLVERR_URL:
-            return False, "⚠️ 未配置 FlareSolverr\n请先部署: docker run -d --name flaresolverr --restart unless-stopped -p 8191:8191 ghcr.io/flaresolverr/flaresolverr:latest\n然后设置环境变量 FLARESOLVERR_URL=http://<IP>:8191"
+        
+        # 自动启动 FlareSolverr
+        report_func("⚙️ 检查 FlareSolverr 状态...")
+        fs_running, fs_msg = check_flaresolverr_status()
+        if not fs_running:
+            start_ok, start_msg = start_flaresolverr_container()
+            if not start_ok:
+                return False, f"⚠️ {start_msg}\n请先部署 FlareSolverr 容器"
+            report_func(f"⚙️ {start_msg}，等待服务就绪...")
+            if not wait_for_flaresolverr():
+                return False, "⚠️ FlareSolverr 启动超时，请检查容器"
         report_func("🕷️ 通过 FlareSolverr 绕过 Cloudflare...")
         last_report = time.time(); consecutive_fail = 0
         for idx, rb_id in enumerate(targets):
@@ -218,7 +262,11 @@ async def lego_trigger_update_handler(u, c):
 async def get_system_status_text():
     mapped, total, active = get_db_stats(); st = "✅ 空闲"
     if active: st = f"🔄 {UPDATE_STATUS['task_name']}中..."
-    return f"📚 <b>人仔收录:</b> <code>{mapped}/{total}</code>\n🕵️ <b>人仔数据库维护:</b> {st}"
+    try:
+        is_fs, fs_msg = await asyncio.to_thread(check_flaresolverr_status)
+        fs_str = f"{'🟢' if is_fs else '🔴'} FlareSolverr: {fs_msg}"
+    except: fs_str = "🔴 FlareSolverr: 未知"
+    return f"📚 <b>人仔收录:</b> <code>{mapped}/{total}</code>\n🕵️ <b>人仔数据库维护:</b> {st}\n{fs_str}"
 
 async def lego_menu_panel(update, context):
     if getattr(context, 'args', None): await do_lego_search(update.effective_chat.id, context, 'set', " ".join(context.args)); return

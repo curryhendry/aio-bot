@@ -87,7 +87,12 @@ async def status(u, c):
     try: 
         lego_st = await lego.get_system_status_text()
     except: 
-        lego_st = "📚 人仔收录: N/A\n🕵️ 人仔数据库维护: N/A"
+        lego_st = "📚 人仔收录: N/A\n🕵️ 人仔数据库维护: N/A\n🛡️ FlareSolverr: 未知"
+    
+    fs_is_run = False
+    try:
+        fs_is_run, fs_msg = await asyncio.to_thread(lego.check_flaresolverr_status)
+    except: pass
         
     msg = (
         f"📊 <b>系统状态</b>\n"
@@ -100,6 +105,8 @@ async def status(u, c):
     keyboard = []
     if is_run:
         keyboard.append([InlineKeyboardButton("⏹️ 关闭 MeTube", callback_data="stop_metube")])
+    if fs_is_run:
+        keyboard.append([InlineKeyboardButton("⏹️ 关闭 FlareSolverr", callback_data="stop_flaresolverr")])
     keyboard.append([InlineKeyboardButton("♻️ 重启机器人", callback_data="restart_bot")])
     await u.message.reply_text(msg, parse_mode=ParseMode.HTML, reply_markup=InlineKeyboardMarkup(keyboard))
 
@@ -125,7 +132,7 @@ async def stop_metube_callback(u, c):
     try:
         lego_st = await lego.get_system_status_text()
     except:
-        lego_st = "📚 人仔收录: N/A\n🕵️ 人仔数据库维护: N/A"
+        lego_st = "📚 人仔收录: N/A\n🕵️ 人仔数据库维护: N/A\n🛡️ FlareSolverr: 未知"
     msg = (
         f"📊 <b>系统状态</b>\n"
         f"⚙️ CPU: {cpu}%\n"
@@ -134,7 +141,53 @@ async def stop_metube_callback(u, c):
         f"🔗 MeTube: {metube_str}\n\n"
         f"{lego_st}"
     )
-    keyboard = [[InlineKeyboardButton("♻️ 重启机器人", callback_data="restart_bot")]]
+    keyboard = []
+    try:
+        _fs_run, _fs_msg = await asyncio.to_thread(lego.check_flaresolverr_status)
+        if _fs_run:
+            keyboard.append([InlineKeyboardButton("⏹️ 关闭 FlareSolverr", callback_data="stop_flaresolverr")])
+    except: pass
+    keyboard.append([InlineKeyboardButton("♻️ 重启机器人", callback_data="restart_bot")])
+    await c.bot.send_message(u.effective_chat.id, msg, parse_mode=ParseMode.HTML, reply_markup=InlineKeyboardMarkup(keyboard))
+
+async def stop_flaresolverr_callback(u, c):
+    """关闭 FlareSolverr 容器"""
+    query = u.callback_query
+    await query.answer("⏹️ 正在关闭 FlareSolverr...")
+    try:
+        import docker as _docker
+        client = _docker.from_env()
+        for container in client.containers.list():
+            if "flaresolverr" in container.name.lower():
+                container.stop()
+                break
+    except Exception as e:
+        await query.edit_message_text(f"❌ 关闭失败: {str(e)}")
+        return
+    await query.message.delete()
+    cpu, ram, dp, du, dt = await asyncio.to_thread(get_system_stats)
+    is_run = False
+    try:
+        is_run, mt_msg = await asyncio.to_thread(media.check_metube_status)
+        metube_str = f"{'🟢' if is_run else '🔴'} {mt_msg}"
+    except:
+        metube_str = "🔴 未知"
+    try:
+        lego_st = await lego.get_system_status_text()
+    except:
+        lego_st = "📚 人仔收录: N/A\n🕵️ 人仔数据库维护: N/A\n🛡️ FlareSolverr: 未知"
+    msg = (
+        f"📊 <b>系统状态</b>\n"
+        f"⚙️ CPU: {cpu}%\n"
+        f"⚡️ RAM: {ram}%\n"
+        f"💾 Disk: {dp}% ({du}G / {dt}G)\n"
+        f"🔗 MeTube: {metube_str}\n\n"
+        f"{lego_st}"
+    )
+    keyboard = []
+    if is_run:
+        keyboard.append([InlineKeyboardButton("⏹️ 关闭 MeTube", callback_data="stop_metube")])
+    keyboard.append([InlineKeyboardButton("♻️ 重启机器人", callback_data="restart_bot")])
     await c.bot.send_message(u.effective_chat.id, msg, parse_mode=ParseMode.HTML, reply_markup=InlineKeyboardMarkup(keyboard))
 
 async def reboot_cmd(u, c):
@@ -249,6 +302,7 @@ def main():
     app.add_handler(MessageHandler((filters.TEXT | filters.Document.VIDEO | filters.VIDEO) & ~filters.COMMAND, media.handle_file))
     app.add_handler(CallbackQueryHandler(restart_bot_callback, pattern=r'^restart_bot$'))
     app.add_handler(CallbackQueryHandler(stop_metube_callback, pattern=r'^stop_metube$'))
+    app.add_handler(CallbackQueryHandler(stop_flaresolverr_callback, pattern=r'^stop_flaresolverr$'))
 
     # Image Handler
     if image and hasattr(image, 'get_handler'): 
