@@ -48,3 +48,4 @@ history/
 # 本地部署配置（不推 GitHub）
 .deploy.conf
 deploy.sh
+restore.sh
