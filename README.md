@@ -19,7 +19,8 @@
 | 📥 媒体下载 | 支持 YouTube / B站 / 抖音，优先推送 MeTube 容器下载，支持 fallback 直接下载 |
 | 🧱 乐高查询 | 套装、人仔、MOC、零件查询，对接 Rebrickable API；人仔自建数据库（SQLite） |
 | 🖼️ 以图搜图 | 上传图片，生成 Google Lens 链接（需 Telegram 内置浏览器打开） |
-| ⚙️ 系统状态 | CPU / 磁盘 / MeTube 状态，重启机器人，关闭 MeTube |
+| 🔧 FlareSolverr | 绕过 Cloudflare 验证，爬取 rebrickable.com 人仔数据；按需自动启动/关闭 |
+| ⚙️ 系统状态 | CPU / 磁盘 / MeTube / FlareSolverr 状态，重启机器人，关闭 MeTube / FlareSolverr |
 
 ### 一级菜单
 
@@ -101,6 +102,9 @@ RB_KEY = "你的Rebrickable API Key"
 
 METUBE_URL = "http://MeTube:8081"
 METUBE_CONTAINER_NAME = "MeTube"
+
+FLARESOLVERR_URL = "http://127.0.0.1:8191"
+FLARESOLVERR_CONTAINER_NAME = "FlareSolverr"
 ```
 
 > 🔒 **安全提示**：`config.py` 含真实 Token，不要提交到 GitHub！
@@ -125,6 +129,15 @@ docker run -d \
   -v /home/ubuntu/metube_downloads:/downloads \
   ghcr.io/alexta69/metube:latest
 
+# 部署 FlareSolverr（Cloudflare 绕过服务，用于乐高数据爬取）
+docker run -d \
+  --name FlareSolverr \
+  --network aio-net \
+  --restart=unless-stopped \
+  -p 8191:8191 \
+  -e TZ=Asia/Shanghai \
+  ghcr.io/flaresolverr/flaresolverr:latest
+
 # 部署机器人
 docker run -d \
   --name All-in-One_tgbot \
@@ -140,6 +153,7 @@ docker run -d \
 ```
 
 > 📌 MeTube 与机器人必须在同一 `aio-net` 网络下才能互通
+> 📌 FlareSolverr 平时关闭，爬虫触发时由 Bot 自动启动，节省资源
 
 ### 步骤 6：开始使用
 
@@ -219,6 +233,7 @@ aio-bot/
 - [The Movie Database (TMDB)](https://www.themoviedb.org)
 - [Rebrickable](https://rebrickable.com)
 - [MeTube](https://github.com/alexta69/metube)
+- [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr)
 
 ---
 
