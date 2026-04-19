@@ -254,7 +254,6 @@ async def post_init(app):
         BotCommand("s", "🔍 搜书/ 影视"),
         BotCommand("lego", "🧱 乐高查询"),
         BotCommand("mini", "🧸 查人仔"),
-        BotCommand("export", "📤 导出人仔数据"),
         BotCommand("reboot", "🔄 重启机器人")
     ])
 
