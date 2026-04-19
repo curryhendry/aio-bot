@@ -246,9 +246,17 @@ async def handle_callback(u, c):
         else: await c.bot.send_message(chat_id, "\n".join(info_lines), parse_mode=ParseMode.HTML, reply_markup=InlineKeyboardMarkup(kb))
         return
 
+def clean_url(raw):
+    CHARS = "?!.,;:'\"\u201c\u201d\uff0c\u3002\uff1b\uff1a\uff01\uff1f\u3001\uff09\u300b\u300d\u300f\u3011>"
+    while raw and raw[-1] in CHARS:
+        raw = raw[:-1]
+    while raw and ord(raw[-1]) > 0x2000:
+        raw = raw[:-1]
+    return raw
+
 async def handle_file(update, context):
     msg = update.message; text = msg.text or msg.caption or ""; chat_id = update.effective_chat.id
-    urls = re.findall(r'https?://[^\s]+', text); url = urls[0] if urls else text.strip() if 'magnet:?' in text else None
+    urls = re.findall(r'https?://[^\s]+', text); url = clean_url(urls[0]) if urls else text.strip() if 'magnet:?' in text else None
     if not url: return
 
     if any(x in url for x in ['youtube.com', 'youtu.be', 'bilibili.com', 'b23.tv']):
