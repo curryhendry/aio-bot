@@ -41,30 +41,27 @@ def push_to_metube_api(url, was_stopped=False):
     return False, "推送失败"
 
 def resolve_xhs_shortlink(url):
-    """解析小红书短链接，尝试不用代理"""
+    """解析小红书短链接，服务器直连绕过代理封禁"""
     if 'xhslink.com' not in url and 'xiaohongshu.com' not in url:
         return url
+    old_no_proxy = os.environ.get('NO_PROXY', '')
     try:
-        # 尝试不用代理解析短链接
+        # 强制不走代理，让请求直连（NO_PROXY=* 绕过服务器透明代理/DNS劫持）
+        os.environ['NO_PROXY'] = '*'
         session = requests.Session()
-        session.trust_env = False  # 不使用环境变量中的代理
-        r = session.head(url, allow_redirects=True, timeout=10)
+        session.trust_env = False
+        r = session.get(url, allow_redirects=True, timeout=10)
         if r.status_code == 200 and 'xiaohongshu.com' in r.url:
             logger.info(f"小红书短链接解析成功: {url} -> {r.url}")
             return r.url
+        elif r.status_code == 502:
+            logger.warning(f"小红书短链接服务器返回502，尝试直连完整域名...")
+            # 备选：尝试直接请求 xiaohongshu.com 而不解析短链接
+            raise Exception("server 502")
     except Exception as e:
-        logger.warning(f"小红书短链接解析失败(无代理): {e}")
-    # 尝试用代理
-    try:
-        proxies = {'http': os.getenv('HTTP_PROXY', os.getenv('http_proxy', '')), 'https': os.getenv('HTTPS_PROXY', os.getenv('https_proxy', ''))}
-        if proxies.get('http') or proxies.get('https'):
-            r = requests.head(url, allow_redirects=True, timeout=10, proxies=proxies)
-            if r.status_code == 200 and 'xiaohongshu.com' in r.url:
-                return r.url
-            elif r.status_code == 502:
-                logger.warning(f"小红书短链接返回502，请使用直接链接")
-    except Exception as e:
-        logger.warning(f"小红书短链接解析失败(有代理): {e}")
+        logger.warning(f"小红书短链接解析失败: {e}")
+    finally:
+        os.environ['NO_PROXY'] = old_no_proxy
     return url
 
 def run_ytdlp_internal(url, proxies=None):
@@ -341,7 +338,7 @@ async def handle_file(update, context):
     if suc:
         try:
             await status_msg.edit_text("✅ 发送中...")
-            await context.bot.send_video(chat_id=chat_id, video=open(res, 'rb'), caption=f"✅ {title}")
+            await context.bot.send_video(chat_id=chat_id, video=open(res, 'rb'), caption=f"✅ {title}", timeout=180)
             await status_msg.delete(); os.remove(res)
         except Exception as e:
             await status_msg.edit_text(f"❌ 发送失败: {str(e)}")
