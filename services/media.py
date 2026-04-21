@@ -42,26 +42,7 @@ def push_to_metube_api(url, was_stopped=False):
 
 def run_ytdlp_internal(url):
     cookie_path = COOKIES_FILE if os.path.exists(COOKIES_FILE) else None
-    ydl_opts = {
-        'format': 'best[ext=mp4]/best',
-        'outtmpl': '/downloads/%(title)s.%(ext)s',
-        'quiet': True,
-        'cookiefile': cookie_path,
-        'ignoreerrors': True,
-        'no_warnings': True,
-        'nocheckcertificate': True,
-    }
-    # 小红书需要特殊处理
-    xiaohongshu_domains = ['xiaohongshu.com', 'xiaohongshu.cn', 'xhslink.com']
-    if any(d in url for d in xiaohongshu_domains):
-        ydl_opts['extractor_args'] = {
-            'xiaohongshu': {'skip': ['comments', 'livechat']}
-        }
-        ydl_opts['http_headers'] = {
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
-        }
+    ydl_opts = {'format': 'best[ext=mp4]/best', 'outtmpl': '/downloads/%(title)s.%(ext)s', 'quiet': True, 'cookiefile': cookie_path, 'ignoreerrors': True, 'no_warnings': True, 'nocheckcertificate': True}
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
@@ -277,19 +258,6 @@ async def handle_file(update, context):
     msg = update.message; text = msg.text or msg.caption or ""; chat_id = update.effective_chat.id
     urls = re.findall(r'https?://[^\s]+', text); url = clean_url(urls[0]) if urls else text.strip() if 'magnet:?' in text else None
     if not url: return
-    # 小红书链接处理
-    xiaohongshu_domains = ['xiaohongshu.com', 'xiaohongshu.cn', 'xhslink.com']
-    if any(d in url for d in xiaohongshu_domains):
-        # 短链接先解析完整 URL
-        if 'xhslink.com' in url:
-            try:
-                real_url = requests.head(url, allow_redirects=True, timeout=10, headers={'User-Agent': 'Mozilla/5.0'}).url
-                if real_url and real_url != url: url = real_url
-            except: pass
-        # 小红书直连需要特殊 headers
-        if any(d in url for d in ['xiaohongshu.com', 'xiaohongshu.cn']):
-            # 小红书直接下载走 yt-dlp，需要添加必要的 headers
-            pass  # headers 在 run_ytdlp_internal 中处理
 
     if any(x in url for x in ['youtube.com', 'youtu.be', 'bilibili.com', 'b23.tv']):
         status_msg = await msg.reply_text("⚙️ 检查 MeTube 状态...")
