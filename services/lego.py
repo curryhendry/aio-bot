@@ -63,18 +63,30 @@ def resolve_fig_id(query):
     # 处理纯数字: 012384 → fig-012384
     if re.match(r'^\d+$', q):
         return f"fig-{int(q):06d}"
-    # 处理 LEGO ID 前缀: sh0016 / sh016 / sw0016 / sw016 → 查 DB 映射
+    # 处理 LEGO ID 前缀: sh0016a / sh016b / sw0016 → 查 DB 映射
     clean = q.lower().replace('-', '').replace(' ', '')
-    m = re.match(r'^([a-z]+)(\d+)$', clean)
+    # 支持变体后缀: sh0016a, sh0016b
+    m = re.match(r'^([a-z]+)(\d+)([a-z])?$', clean)
     if m:
-        target_id = f"{m.group(1)}{int(m.group(2)):04d}"
+        base_id = f"{m.group(1)}{int(m.group(2)):04d}"
+        variant = m.group(3) or ''  # 变体后缀 a/b/c
+        target_id = base_id + variant
         try:
             conn = sqlite3.connect(DB_FILE)
             c = conn.cursor()
+            # 先查完整 ID（含变体），再查基础 ID
             c.execute("SELECT rb_id FROM minifig_map WHERE ext_id = ? OR rb_id = ?", (target_id, target_id))
             row = c.fetchone()
+            if row: 
+                conn.close()
+                return row[0]
+            # 如果带变体没找到，试试不带变体
+            if variant:
+                c.execute("SELECT rb_id FROM minifig_map WHERE ext_id = ? OR rb_id = ?", (base_id, base_id))
+                row = c.fetchone()
+                conn.close()
+                if row: return row[0]
             conn.close()
-            if row: return row[0]
             return target_id  # 即使 DB 里没有，也返回（走 Rebrickable 搜索兜底）
         except: pass
         return target_id
