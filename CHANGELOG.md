@@ -3,6 +3,7 @@
 ### 修复
 - LEGO 搜索：SESSION 加代理支持，读取容器 HTTP_PROXY/HTTPS_PROXY 环境变量
 - 小红书：短链接 xhslink.com 先 head 请求解析完整 URL 再送 yt-dlp
+- 命令列表：添加 set_my_commands 错误日志
 
 
 ## [v1.0.104] - 2026-04-20
