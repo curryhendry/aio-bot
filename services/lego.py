@@ -446,7 +446,9 @@ async def do_lego_search(chat_id, context, dtype, query, page=1, edit=False, upd
         txt = f"🔍 <b>{query}</b> ({page}/{math.ceil(res.get('count',0)/10)})"
         if edit and update_obj: await update_obj.callback_query.message.edit_text(txt, parse_mode=ParseMode.HTML, reply_markup=InlineKeyboardMarkup(kb))
         else: await context.bot.send_message(chat_id, txt, parse_mode=ParseMode.HTML, reply_markup=InlineKeyboardMarkup(kb))
-    else: await context.bot.send_message(chat_id, f"❌ 无结果: {final_query}")
+    else: 
+        kb = [[InlineKeyboardButton("🔍 换关键词", callback_data=f"L~ASK~{dtype}")]]
+        await context.bot.send_message(chat_id, f"❌ 无结果: {final_query}", reply_markup=InlineKeyboardMarkup(kb))
 
 async def show_lego_detail(chat_id, context, dtype, uid, item_data=None, update_obj=None, page=1, parent_id=None):
     if update_obj and update_obj.callback_query: await update_obj.callback_query.message.delete()
