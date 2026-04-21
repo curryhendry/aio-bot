@@ -7,6 +7,10 @@ from config import RB_BASE, RB_KEY, FAKE_HEADERS, USD_CNY_RATE, LEGO_INPUT, DB_F
 logger = logging.getLogger(__name__)
 SESSION = requests.Session()
 SESSION.headers.update(FAKE_HEADERS)
+_proxies = {}
+if os.getenv('HTTP_PROXY'): _proxies['http'] = os.getenv('HTTP_PROXY')
+if os.getenv('HTTPS_PROXY'): _proxies['https'] = os.getenv('HTTPS_PROXY')
+if _proxies: SESSION.proxies.update(_proxies)
 
 async def silent_cancel(update: Update, context):
     return ConversationHandler.END

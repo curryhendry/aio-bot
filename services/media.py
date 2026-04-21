@@ -258,6 +258,12 @@ async def handle_file(update, context):
     msg = update.message; text = msg.text or msg.caption or ""; chat_id = update.effective_chat.id
     urls = re.findall(r'https?://[^\s]+', text); url = clean_url(urls[0]) if urls else text.strip() if 'magnet:?' in text else None
     if not url: return
+    # 小红书短链接先解析完整 URL
+    if 'xhslink.com' in url:
+        try:
+            real_url = requests.head(url, allow_redirects=True, timeout=10).url
+            if real_url and real_url != url: url = real_url
+        except: pass
 
     if any(x in url for x in ['youtube.com', 'youtu.be', 'bilibili.com', 'b23.tv']):
         status_msg = await msg.reply_text("⚙️ 检查 MeTube 状态...")
