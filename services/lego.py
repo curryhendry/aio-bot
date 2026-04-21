@@ -539,7 +539,6 @@ async def handle_callback(u, c):
         else: await c.bot.send_message(u.effective_chat.id, "⚠️ 页面已过期，请重新搜索")
     elif pts[1] == 'F': await lego_check_minifigs(u, c, pts[2])
     elif pts[1] == 'FS': await lego_check_fig_sets(u, c, pts[2])
-    elif pts[1] == 'ASK': await lego_search_entry(u, c)
     elif pts[1] == 'NAV': await lego_website_nav(u, c)
     elif pts[1] == 'NEW': await lego_new_sets_year_picker(u, c)
     elif pts[1] == 'NL': await lego_new_sets_list(u, c)
