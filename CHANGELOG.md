@@ -1,4 +1,19 @@
+## [v1.0.109] - 2026-04-21
+
+### 修复
+- `resolve_fig_id`: 修复 fig-012384 格式丢失连字符导致 ID 显示错误的问题（同时影响 BrickLink ID 显示）
+- `resolve_fig_id`: 修复 LEGO ID（如 sh/sw 前缀）即使 DB 不存在也不崩溃，改走 Rebrickable 搜索兜底
+- 以图搜图: image.py 降级支持，优先 imgbb（需配置 IMGBB_API_KEY），次选 Telegram 文件 URL
+
+### 回退
+- 小红书下载：回退至 v1.0.100 风格（无特殊处理）
+
 ## [v1.0.108] - 2026-04-21
+
+### 回退
+- 回退 xiaohongshu 处理代码至 v1.0.100 风格（删除无效的 extractor_args 和 http_headers）
+
+## [v1.0.107] - 2026-04-21
 
 ### 回退
 - 回退 xiaohongshu 处理代码至 v1.0.100 风格（删除无效的 extractor_args 和 http_headers）
@@ -8,37 +23,8 @@
 ### 修复
 - LEGO 搜索：SESSION 加代理支持，读取容器 HTTP_PROXY/HTTPS_PROXY 环境变量
 - 小红书：短链接 xhslink.com 先 head 请求解析完整 URL 再送 yt-dlp
-- 命令列表：修复 delete_my_commands 的 language code，添加更多容错处理
 
-
-## [v1.0.104] - 2026-04-20
-
-### 更新
-- 同步到 N100
-
-
-## [v1.0.103] - 2026-04-20
+## [v1.0.105] - 2026-04-21
 
 ### 修复
-- 修复重启 404：容器名从 HOSTNAME 改为硬编码 "All-in-One_tgbot"
-- CHANGELOG 同步干净版本到 N100（清除含 Telegram ID 的旧条目）
-
-## [v1.0.102] - 2026-04-19
-
-### 修复
-- 修复配置默认值
-
-## [v1.0.101] - 2026-04-19
-
-### 修复
-- 命令菜单去掉 /export，保留 /start /s /lego /mini /reboot
-
-## [v1.0.100] - 2026-04-19
-
-### 修复
-- media.py 新增 clean_url() 清理 URL 末尾的 emoji/标点/CJK 字符，修复头条链接下载失败问题
-
-## [v1.0.099] - 2026-04-19
-
-### 更新
-- 同步到 N100
+- LEGO 搜索：移除 handle_callback 中对 L~ASK~ 的重复处理，避免与 ConversationHandler 冲突
