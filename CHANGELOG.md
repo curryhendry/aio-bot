@@ -1,9 +1,9 @@
-## [v1.0.105] - 2026-04-21
+## [v1.0.106] - 2026-04-21
 
 ### 修复
 - LEGO 搜索：SESSION 加代理支持，读取容器 HTTP_PROXY/HTTPS_PROXY 环境变量
 - 小红书：短链接 xhslink.com 先 head 请求解析完整 URL 再送 yt-dlp
-- 命令列表：添加 set_my_commands 错误日志
+- 命令列表：修复 delete_my_commands 的 language code，添加更多容错处理
 
 
 ## [v1.0.104] - 2026-04-20
