@@ -243,10 +243,9 @@ async def post_init(app):
     try:
         # 清空所有语言码的命令缓存
         await app.bot.delete_my_commands()
-        await app.bot.delete_my_commands(language_code="")
-        await app.bot.delete_my_commands(language_code='zh-hans')
-        await app.bot.delete_my_commands(language_code='zh')
-        await app.bot.delete_my_commands(language_code='en')
+        for lc in ["zh-cn", "zh-tw", "zh-hans", "zh-hant", "en", ""]:
+            try: await app.bot.delete_my_commands(language_code=lc)
+            except: pass
     except Exception as e:
         logging.error(f"删除命令缓存失败: {e}")
 

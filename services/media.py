@@ -52,7 +52,8 @@ def run_ytdlp_internal(url):
         'nocheckcertificate': True,
     }
     # 小红书需要特殊处理
-    if 'xiaohongshu.com' in url:
+    xiaohongshu_domains = ['xiaohongshu.com', 'xiaohongshu.cn', 'xhslink.com']
+    if any(d in url for d in xiaohongshu_domains):
         ydl_opts['extractor_args'] = {
             'xiaohongshu': {'skip': ['comments', 'livechat']}
         }
@@ -277,15 +278,16 @@ async def handle_file(update, context):
     urls = re.findall(r'https?://[^\s]+', text); url = clean_url(urls[0]) if urls else text.strip() if 'magnet:?' in text else None
     if not url: return
     # 小红书链接处理
-    if 'xhslink.com' in url or 'xiaohongshu.com' in url:
+    xiaohongshu_domains = ['xiaohongshu.com', 'xiaohongshu.cn', 'xhslink.com']
+    if any(d in url for d in xiaohongshu_domains):
         # 短链接先解析完整 URL
         if 'xhslink.com' in url:
             try:
-                real_url = requests.head(url, allow_redirects=True, timeout=10).url
+                real_url = requests.head(url, allow_redirects=True, timeout=10, headers={'User-Agent': 'Mozilla/5.0'}).url
                 if real_url and real_url != url: url = real_url
             except: pass
         # 小红书直连需要特殊 headers
-        if 'xiaohongshu.com' in url:
+        if any(d in url for d in ['xiaohongshu.com', 'xiaohongshu.cn']):
             # 小红书直接下载走 yt-dlp，需要添加必要的 headers
             pass  # headers 在 run_ytdlp_internal 中处理
 
