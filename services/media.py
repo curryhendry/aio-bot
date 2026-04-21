@@ -40,9 +40,46 @@ def push_to_metube_api(url, was_stopped=False):
         if was_stopped: time.sleep(3)
     return False, "推送失败"
 
-def run_ytdlp_internal(url):
+def resolve_xhs_shortlink(url):
+    """解析小红书短链接，尝试不用代理"""
+    if 'xhslink.com' not in url and 'xiaohongshu.com' not in url:
+        return url
+    try:
+        # 尝试不用代理解析短链接
+        session = requests.Session()
+        session.trust_env = False  # 不使用环境变量中的代理
+        r = session.head(url, allow_redirects=True, timeout=10)
+        if r.status_code == 200 and 'xiaohongshu.com' in r.url:
+            logger.info(f"小红书短链接解析成功: {url} -> {r.url}")
+            return r.url
+    except Exception as e:
+        logger.warning(f"小红书短链接解析失败(无代理): {e}")
+    # 尝试用代理
+    try:
+        proxies = {'http': os.getenv('HTTP_PROXY', os.getenv('http_proxy', '')), 'https': os.getenv('HTTPS_PROXY', os.getenv('https_proxy', ''))}
+        if proxies.get('http') or proxies.get('https'):
+            r = requests.head(url, allow_redirects=True, timeout=10, proxies=proxies)
+            if r.status_code == 200 and 'xiaohongshu.com' in r.url:
+                return r.url
+            elif r.status_code == 502:
+                logger.warning(f"小红书短链接返回502，请使用直接链接")
+    except Exception as e:
+        logger.warning(f"小红书短链接解析失败(有代理): {e}")
+    return url
+
+def run_ytdlp_internal(url, proxies=None):
     cookie_path = COOKIES_FILE if os.path.exists(COOKIES_FILE) else None
-    ydl_opts = {'format': 'best[ext=mp4]/best', 'outtmpl': '/downloads/%(title)s.%(ext)s', 'quiet': True, 'cookiefile': cookie_path, 'ignoreerrors': True, 'no_warnings': True, 'nocheckcertificate': True}
+    ydl_opts = {
+        'format': 'best[ext=mp4]/best',
+        'outtmpl': '/downloads/%(title)s.%(ext)s',
+        'quiet': True,
+        'cookiefile': cookie_path,
+        'ignoreerrors': True,
+        'no_warnings': True,
+        'nocheckcertificate': True
+    }
+    if proxies:
+        ydl_opts['proxy'] = proxies
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
@@ -258,7 +295,15 @@ async def handle_file(update, context):
     msg = update.message; text = msg.text or msg.caption or ""; chat_id = update.effective_chat.id
     urls = re.findall(r'https?://[^\s]+', text); url = clean_url(urls[0]) if urls else text.strip() if 'magnet:?' in text else None
     if not url: return
-
+    
+    # 尝试解析小红书短链接
+    if 'xhslink.com' in url or 'xiaohongshu.com' in url:
+        resolved_url = resolve_xhs_shortlink(url)
+        if resolved_url != url:
+            url = resolved_url
+        else:
+            await msg.reply_text("⚠️ 小红书短链接解析失败，请使用直接链接（如 https://www.xiaohongshu.com/explore/xxx ）")
+    
     if any(x in url for x in ['youtube.com', 'youtu.be', 'bilibili.com', 'b23.tv']):
         status_msg = await msg.reply_text("⚙️ 检查 MeTube 状态...")
         c_suc, c_msg = start_metube_container()
