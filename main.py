@@ -247,15 +247,19 @@ async def post_init(app):
         await app.bot.delete_my_commands(language_code='zh-hans')
         await app.bot.delete_my_commands(language_code='zh')
         await app.bot.delete_my_commands(language_code='en')
-    except: pass
+    except Exception as e:
+        logging.error(f"删除命令缓存失败: {e}")
 
-    await app.bot.set_my_commands([
-        BotCommand("start", "🤖 开始 / 主菜单"),
-        BotCommand("s", "🔍 搜书/ 影视"),
-        BotCommand("lego", "🧱 乐高查询"),
-        BotCommand("mini", "🧸 查人仔"),
-        BotCommand("reboot", "🔄 重启机器人")
-    ])
+    try:
+        await app.bot.set_my_commands([
+            BotCommand("start", "🤖 开始 / 主菜单"),
+            BotCommand("s", "🔍 搜书/ 影视"),
+            BotCommand("lego", "🧱 乐高查询"),
+            BotCommand("mini", "🧸 查人仔"),
+            BotCommand("reboot", "🔄 重启机器人")
+        ])
+    except Exception as e:
+        logging.error(f"设置命令列表失败: {e}")
 
     # 上线通知：展示完整菜单和版本说明（与 /start 一致）
     if ALLOWED_IDS:
