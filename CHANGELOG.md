@@ -1,3 +1,10 @@
+## [v1.0.105] - 2026-04-21
+
+### 修复
+- LEGO 搜索：SESSION 加代理支持，读取容器 HTTP_PROXY/HTTPS_PROXY 环境变量
+- 小红书：短链接 xhslink.com 先 head 请求解析完整 URL 再送 yt-dlp
+
+
 ## [v1.0.104] - 2026-04-20
 
 ### 更新
