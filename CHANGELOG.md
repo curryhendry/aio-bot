@@ -1,3 +1,8 @@
+## [v1.0.107] - 2026-04-21
+
+### 修复
+- LEGO 搜索：移除 handle_callback 中对 L~ASK~ 的重复处理，避免与 ConversationHandler 冲突
+
 ## [v1.0.106] - 2026-04-21
 
 ### 修复
