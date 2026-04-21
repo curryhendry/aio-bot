@@ -47,12 +47,27 @@ def clean_id(uid): return uid.replace('-1', '')
 
 def resolve_fig_id(query):
     q = query.strip()
+    # 处理 fig-012384：直接格式化为标准形式并查 DB
+    m_fig = re.match(r'^(fig-)(\d+)$', q, re.IGNORECASE)
+    if m_fig:
+        rb_id = f"fig-{int(m_fig.group(2)):06d}"
+        try:
+            conn = sqlite3.connect(DB_FILE)
+            c = conn.cursor()
+            c.execute("SELECT rb_id FROM minifig_map WHERE rb_id = ?", (rb_id,))
+            row = c.fetchone()
+            conn.close()
+            if row: return row[0]
+        except: pass
+        return rb_id  # 即使 DB 里没有，也返回标准格式
+    # 处理纯数字: 012384 → fig-012384
+    if re.match(r'^\d+$', q):
+        return f"fig-{int(q):06d}"
+    # 处理 LEGO ID 前缀: sh0016 / sh016 / sw0016 / sw016 → 查 DB 映射
     clean = q.lower().replace('-', '').replace(' ', '')
-    target_id = None
     m = re.match(r'^([a-z]+)(\d+)$', clean)
-    if m: target_id = f"{m.group(1)}{int(m.group(2)):04d}"
-    elif re.match(r'^\d+$', clean): target_id = f"fig-{int(clean):06d}"
-    if target_id:
+    if m:
+        target_id = f"{m.group(1)}{int(m.group(2)):04d}"
         try:
             conn = sqlite3.connect(DB_FILE)
             c = conn.cursor()
@@ -60,8 +75,9 @@ def resolve_fig_id(query):
             row = c.fetchone()
             conn.close()
             if row: return row[0]
-            return target_id
+            return target_id  # 即使 DB 里没有，也返回（走 Rebrickable 搜索兜底）
         except: pass
+        return target_id
     return q
 
 def check_flaresolverr_status():
