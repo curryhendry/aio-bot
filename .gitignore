@@ -45,7 +45,8 @@ history/
 *~
 .DS_Store
 
-# 本地部署配置（不推 GitHub）
-.deploy.conf
+config.py
 deploy.sh
+.deploy.conf
 restore.sh
+git维护/
