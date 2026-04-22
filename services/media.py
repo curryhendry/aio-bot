@@ -338,7 +338,7 @@ async def handle_file(update, context):
     if suc:
         try:
             await status_msg.edit_text("✅ 发送中...")
-            await context.bot.send_video(chat_id=chat_id, video=open(res, 'rb'), caption=f"✅ {title}", timeout=180)
+            await context.bot.send_video(chat_id=chat_id, video=open(res, 'rb'), caption=f"✅ {title}")
             await status_msg.delete(); os.remove(res)
         except Exception as e:
             await status_msg.edit_text(f"❌ 发送失败: {str(e)}")
