@@ -138,18 +138,18 @@ docker run -d \
   -e TZ=Asia/Shanghai \
   ghcr.io/flaresolverr/flaresolverr:latest
 
-# 部署机器人
+# 部署机器人（N100）
 docker run -d \
   --name All-in-One_tgbot \
-  --network aio-net \
-  --restart=unless-stopped \
-  -w /aio_bot \
-  -v /home/ubuntu/aio_bot:/aio_bot \
-  -v /home/ubuntu/aio_bot/downloads:/downloads \
+  --hostname All-in-One_tgbot \
+  --network host \
+  --restart unless-stopped \
+  -v /mnt/Download/Program/All-in-One_bot:/aio_bot \
+  -v /mnt/Download/Program:/cookies \
+  -v /mnt/Download/youtube-dl:/downloads \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -e TZ=Asia/Shanghai \
-  aio_bot:latest \
-  python main.py
+  ghcr.io/dailymemotimes/all-in-one_bot:main
 ```
 
 > 📌 MeTube 与机器人必须在同一 `aio-net` 网络下才能互通
