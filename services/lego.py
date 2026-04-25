@@ -7,9 +7,14 @@ from config import RB_BASE, RB_KEY, FAKE_HEADERS, USD_CNY_RATE, LEGO_INPUT, DB_F
 logger = logging.getLogger(__name__)
 SESSION = requests.Session()
 SESSION.headers.update(FAKE_HEADERS)
+# 容器级代理已废弃（2026-04-25），改由 FlareSolverr 处理 Cloudflare 请求
+# LEGO 直接请求走直连；FlareSolverr 走 aio-net 内部代理（由 FlareSolverr 容器管理）
 _proxies = {}
-if os.getenv('HTTP_PROXY'): _proxies['http'] = os.getenv('HTTP_PROXY')
-if os.getenv('HTTPS_PROXY'): _proxies['https'] = os.getenv('HTTPS_PROXY')
+try:
+    if os.getenv('HTTP_PROXY'): _proxies['http'] = os.getenv('HTTP_PROXY')
+    if os.getenv('HTTPS_PROXY'): _proxies['https'] = os.getenv('HTTPS_PROXY')
+except Exception:
+    pass
 if _proxies: SESSION.proxies.update(_proxies)
 
 async def silent_cancel(update: Update, context):
