@@ -149,6 +149,8 @@ docker run -d \
   -v /mnt/Download/youtube-dl:/downloads \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -e TZ=Asia/Shanghai \
+  -e HTTP_PROXY=http://192.168.100.1:7890 \
+  -e HTTPS_PROXY=http://192.168.100.1:7890 \
   aio_bot:latest \
   python main.py
 ```
