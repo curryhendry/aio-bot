@@ -149,7 +149,8 @@ docker run -d \
   -v /mnt/Download/youtube-dl:/downloads \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -e TZ=Asia/Shanghai \
-  ghcr.io/dailymemotimes/all-in-one_bot:main
+  aio_bot:latest \
+  python main.py
 ```
 
 > 📌 MeTube 与机器人必须在同一 `aio-net` 网络下才能互通
