@@ -3,6 +3,7 @@ from flask import Flask
 from telegram import Update, BotCommand, ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes, ConversationHandler
+from telegram.request import HTTPXRequest
 from config import BOT_TOKEN, PORT, DB_FILE, SEARCH_WAIT, LEGO_INPUT, restricted, logger, CHANGELOG_FILE, ALLOWED_IDS
 
 # 抑制 httpx 轮询日志刷屏
@@ -271,7 +272,15 @@ async def post_init(app):
 
 def main():
     if not os.path.exists(DB_FILE): init_db()
-    app = Application.builder().token(BOT_TOKEN).post_init(post_init).build()
+    
+    # 增大连接池，解决 "Pool timeout: All connections occupied" 问题
+    request = HTTPXRequest(
+        connection_pool_size=10,
+        pool_timeout=30.0,
+        connect_timeout=20.0,
+        read_timeout=20.0
+    )
+    app = Application.builder().token(BOT_TOKEN).request(request).post_init(post_init).build()
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("reboot", reboot_cmd))
