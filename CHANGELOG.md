@@ -6,6 +6,7 @@ Fixed:
 - 修复 MeTube 端口：METUBE_URL 从 8081 改为 8083
 - deploy.sh：config.py 不再推送到 git维护，仅到 N100 主目录
 - restore.sh：config.py 改为从 N100 主目录同步回 Mac 本地
+- deploy.sh：rsync 排除 lego_db.sqlite，不从 Mac 覆盖 N100 的权威数据库
 
 ## v1.0.118
 
