@@ -311,7 +311,7 @@ async def lego_menu_panel(update, context):
         [InlineKeyboardButton("🔢 搜套装", callback_data="L~ASK~set"), InlineKeyboardButton("🧸 搜人仔", callback_data="L~ASK~fig")],
         [InlineKeyboardButton("⚙️ 搜零件", callback_data="L~ASK~part"), InlineKeyboardButton("🧩 搜 MOC", callback_data="L~ASK~moc")],
         [InlineKeyboardButton("🆕 新品速递", callback_data="L~NEW"), InlineKeyboardButton("🌐 网站导航", callback_data="L~NAV")],
-        [InlineKeyboardButton("🔄 更新人仔数据库", callback_data="lego_update_ask"), InlineKeyboardButton("📤 导出数据库CSV", callback_data="lego_export")]
+        [InlineKeyboardButton("🔄 更新人仔数据库", callback_data="lego_update_ask")]
     ]
     txt = f"🧱 <b>乐高查询中心</b>\n\n{await get_system_status_text()}"
     try:
