@@ -1,3 +1,13 @@
+## v1.0.118
+
+v1.0.118 (2026-04-29)
+Fixed:
+- 修复 CHANGELOG 换行丢失问题
+- 修复 FlareSolverr 连接失败（Docker 容器内 127.0.0.1 不可达，改用容器名）
+Changed:
+- CHANGELOG 输出过滤冗余版本号行
+- config.py.template 补充 FlareSolverr 配置段
+
 ## v1.0.117
 
 v1.0.117 (2026-04-29)
