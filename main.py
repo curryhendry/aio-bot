@@ -273,14 +273,7 @@ async def post_init(app):
 def main():
     if not os.path.exists(DB_FILE): init_db()
     
-    # 增大连接池，解决 "Pool timeout: All connections occupied" 问题
-    request = HTTPXRequest(
-        connection_pool_size=10,
-        pool_timeout=30.0,
-        connect_timeout=20.0,
-        read_timeout=20.0
-    )
-    app = Application.builder().token(BOT_TOKEN).request(request).post_init(post_init).build()
+    app = Application.builder().token(BOT_TOKEN).post_init(post_init).build()
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("reboot", reboot_cmd))
