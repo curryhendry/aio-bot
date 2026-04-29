@@ -200,9 +200,9 @@ def do_download_csv(report_func):
                         if time.time() - last_db_report > 3.0:
                             report_func(f"🔄 处理中: {count} 条..."); last_db_report = time.time()
                 if batch: c.executemany("INSERT INTO minifig_map (rb_id, ext_id, name, img, year, parts) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(rb_id) DO UPDATE SET name=excluded.name, img=excluded.img, parts=excluded.parts", batch)
-                c.execute("SELECT COUNT(*) FROM minifig_map"); added = c.fetchone()[0] - count_before
+                c.execute("SELECT COUNT(*) FROM minifig_map"); count_after = c.fetchone()[0]
                 conn.commit(); conn.close()
-                return True, f"✅ 导入完成\n📊 总数: {count}\n🆕 新增: {added}\n♻️ 更新: {count - added}"
+                return True, f"✅ 导入完成，{count_before}/{count_after}"
     except Exception as e: return False, f"异常: {str(e)[:50]}"
 
 def _cf_fetch(url, session_id="rebrickable"):

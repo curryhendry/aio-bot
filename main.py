@@ -28,27 +28,23 @@ def health(): return "OK", 200
 def run_flask(): app_flask.run(host='0.0.0.0', port=PORT, use_reloader=False)
 
 def get_changelog():
+    """返回纯文本 changelog（去除所有格式标签），防止 Telegram 误解析特殊字符"""
     try:
-        import re
         with open(CHANGELOG_FILE, "r", encoding="utf-8") as f:
             lines = f.readlines()
         blocks, current = [], []
         for line in lines:
-            if line.startswith('<h2>'):
+            stripped = line.strip()
+            if stripped.startswith('## '):
                 if current: blocks.append(''.join(current))
-                current = [line]
-            else: current.append(line)
+                current = [stripped[3:]]  # 去掉 "## " 前缀
+            elif stripped and stripped not in ('---',):
+                # 跳过重复的版本行（如 "v1.0.117 (2026-04-29)"，已在标题出现）
+                if current and stripped.startswith('v1.') and '(' in stripped:
+                    continue
+                current.append(stripped)
         if current: blocks.append(''.join(current))
-        blocks = blocks[:5]  # 最近5个版本
-        result = ''.join(blocks)
-        result = re.sub(r'<h2>', '<b>', result)
-        result = re.sub(r'</h2>', '</b>', result)
-        result = re.sub(r'<p>', '', result)
-        result = re.sub(r'</p>', '\n', result)
-        result = re.sub(r'\n{3,}', '\n\n', result)
-        # 将 lego.com 用 code 包裹防止 URL 格式化
-        result = result.replace('lego.com', '<code>lego.com</code>')
-        return result.strip()
+        return '\n\n'.join(blocks[:5]).strip()
     except: return "暂无更新说明"
 
 async def start(u, c):
