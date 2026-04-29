@@ -4,7 +4,7 @@ v1.0.119 (2026-04-30)
 Fixed:
 - 修复 N100 容器互通：FLARESOLVERR_URL 从容器名改为 127.0.0.1:8191
 - 修复 MeTube 端口：METUBE_URL 从 8081 改为 8083
-- deploy.sh：config.py 不再推送到 git维护/，仅到 N100 主目录
+- deploy.sh：config.py 不再推送到 git维护，仅到 N100 主目录
 - restore.sh：config.py 改为从 N100 主目录同步回 Mac 本地
 
 ## v1.0.118
