@@ -68,6 +68,10 @@ METUBE_URL = os.getenv("METUBE_URL", "http://127.0.0.1:8081")
 # MeTube Docker 容器名称
 METUBE_CONTAINER_NAME = "MeTube"
 
+# FlareSolverr 服务地址（容器内使用容器名，--network host 模式用 127.0.0.1）
+FLARESOLVERR_URL = os.getenv("FLARESOLVERR_URL", "http://FlareSolverr:8191")
+FLARESOLVERR_CONTAINER_NAME = "FlareSolverr"
+
 # Cookies 文件路径（容器内）
 COOKIES_FILE = "/cookies/cookies.txt"
 

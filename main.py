@@ -42,7 +42,10 @@ def get_changelog():
                 # 跳过重复的版本行（如 "v1.0.117 (2026-04-29)"，已在标题出现）
                 if current and stripped.startswith('v1.') and '(' in stripped:
                     continue
-                current.append(stripped)
+                # 跳过更新版本号等冗余行
+                if '更新版本号' in stripped or '更新人' in stripped:
+                    continue
+                current.append('\n' + stripped)
         if current: blocks.append(''.join(current))
         return '\n\n'.join(blocks[:5]).strip()
     except: return "暂无更新说明"
