@@ -39,7 +39,7 @@ def get_changelog():
                 current = [line]
             else: current.append(line)
         if current: blocks.append(''.join(current))
-        blocks = blocks[:8]  # 最近8个版本
+        blocks = blocks[:5]  # 最近5个版本
         result = ''.join(blocks)
         result = re.sub(r'<h2>', '<b>', result)
         result = re.sub(r'</h2>', '</b>', result)
