@@ -1,3 +1,10 @@
+## v1.0.120
+
+v1.0.120 (2026-04-30)
+Fixed:
+- 修复机器人假死：配置 HTTPXRequest 连接池（pool_size=8），防止长轮询连接耗尽
+- 修复 SSL/TLS 握手失败：设置 connect_timeout=30, read_timeout=60
+
 ## v1.0.119
 
 v1.0.119 (2026-04-30)

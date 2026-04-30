@@ -272,7 +272,17 @@ async def post_init(app):
 def main():
     if not os.path.exists(DB_FILE): init_db()
     
-    app = Application.builder().token(BOT_TOKEN).post_init(post_init).build()
+    # 自定义 HTTPXRequest：增大连接池，防止长轮询假死
+    from httpx import Limits, Timeout
+    request = HTTPXRequest(
+        connection_pool_size=8,
+        connect_timeout=30,
+        read_timeout=60,
+        write_timeout=30,
+        pool_timeout=30,
+    )
+    
+    app = Application.builder().token(BOT_TOKEN).request(request).post_init(post_init).build()
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("reboot", reboot_cmd))
