@@ -275,12 +275,11 @@ def main():
     # 自定义 HTTPXRequest：代理 + 连接池
     proxy_url = os.getenv('HTTPS_PROXY', 'http://192.168.100.1:7890')
     request = HTTPXRequest(
-        connection_pool_size=8,
+        connection_pool_size=128,
         connect_timeout=30,
         read_timeout=60,
         write_timeout=30,
         pool_timeout=30,
-        proxy=proxy_url,
     )
     
     app = Application.builder().token(BOT_TOKEN).request(request).post_init(post_init).build()
