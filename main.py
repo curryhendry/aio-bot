@@ -273,13 +273,14 @@ async def post_init(app):
 def main():
     if not os.path.exists(DB_FILE): init_db()
     
-    # 显式配置代理（避免环境变量不可靠）
-    proxy_url = "http://127.0.0.1:7890"
-    http_client = httpx.AsyncClient(proxy=proxy_url)
+    # 自定义 HTTPXRequest：禁用 SSL 验证（绕过代理证书问题）
+    class MyHTTPXRequest(HTTPXRequest):
+        def _create_client(self, **kwargs):
+            kwargs.setdefault('verify', False)
+            return super()._create_client(**kwargs)
     
     # API 请求连接池（发消息/编辑消息等）—— 独立于 polling，避免连接池竞争
-    request = HTTPXRequest(
-        client=http_client,
+    request = MyHTTPXRequest(
         connection_pool_size=8,
         connect_timeout=10,
         read_timeout=30,
@@ -287,8 +288,7 @@ def main():
         pool_timeout=10,
     )
     # Polling 专用连接池 —— getUpdates 长轮询独立连接，不会阻塞 API 调用
-    get_updates_request = HTTPXRequest(
-        client=http_client,
+    get_updates_request = MyHTTPXRequest(
         connection_pool_size=1,
         connect_timeout=10,
         read_timeout=60,
