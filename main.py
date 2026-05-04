@@ -263,9 +263,11 @@ async def post_init(app):
     # 上线通知：展示完整菜单和版本说明（与 /start 一致）
     if ALLOWED_IDS:
         try:
+            logging.info(f"发送上线通知到 {ALLOWED_IDS[0]}...")
             txt = f"🤖 <b>All in One Bot</b>\n\n{get_changelog()}"
             kb_data = [[KeyboardButton("🔍 搜图书/电影/电视"), KeyboardButton("🧱 乐高查询")], [KeyboardButton("⚙️ 系统状态")]]
             await app.bot.send_message(ALLOWED_IDS[0], txt, parse_mode=ParseMode.HTML, reply_markup=ReplyKeyboardMarkup(kb_data, resize_keyboard=True))
+            logging.info("上线通知发送成功")
         except Exception as e:
             logging.warning(f"上线通知发送失败: {e}")
 
