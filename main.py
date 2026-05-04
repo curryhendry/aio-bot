@@ -271,11 +271,12 @@ async def post_init(app):
 
 
 async def polling_loop(app):
-    """带自动恢复的 polling 循环——网络抖动后自动重连，永不放弃"""
+    """带自动恢复的 polling 循环——网络抖动后自动重连"""
+    await app.initialize()
+    await app.start()
+    
     while True:
         try:
-            await app.initialize()
-            await app.start()
             await app.updater.start_polling(bootstrap_retries=3)
             logging.info("Polling 已启动，等待消息...")
             await app.updater.is_polling_active.wait()
@@ -283,8 +284,7 @@ async def polling_loop(app):
             logging.error(f"Polling 异常，5秒后重启: {e}")
             await asyncio.sleep(5)
             try:
-                await app.stop()
-                await app.shutdown()
+                await app.updater.stop()
             except Exception:
                 pass
 
