@@ -269,33 +269,6 @@ async def post_init(app):
         except Exception as e:
             logging.warning(f"上线通知发送失败: {e}")
 
-
-async def polling_loop(app):
-    """带自动恢复的 polling 循环——网络抖动后自动重连"""
-    await app.initialize()
-    await app.start()
-    
-    while True:
-        try:
-            await app.updater.start_polling(bootstrap_retries=3)
-            logging.info("Polling 已启动，等待消息...")
-            # 等待 updater 停止（updater.running 是 asyncio.Event）
-            while app.updater.running:
-                await asyncio.sleep(1)
-        except Exception as e:
-            logging.error(f"Polling 异常，5秒后重启: {e}")
-            await asyncio.sleep(5)
-            try:
-                await app.updater.stop()
-            except Exception:
-                pass
-            # 等待 Updater 完全停止后再重试，避免 "already running" 循环
-            for _ in range(20):  # 最多等 10 秒
-                if not app.updater.running.is_set():
-                    break
-                await asyncio.sleep(0.5)
-
-
 def main():
     if not os.path.exists(DB_FILE): init_db()
     
@@ -360,6 +333,14 @@ def main():
         app.add_handler(image.get_handler())
 
     threading.Thread(target=run_flask, daemon=True).start()
-    asyncio.run(polling_loop(app))
+    # 保活：polling 异常后递归重启（深度最多 1，无风险）
+    def _run():
+        try:
+            app.run_polling()
+        except Exception as e:
+            logging.error(f"Polling 异常，5秒后重启: {e}")
+            import time; time.sleep(5)
+            main()  # 重建全部，重新进入 _run
+    _run()才跳出循环
 
 if __name__ == '__main__': main()

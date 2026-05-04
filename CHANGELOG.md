@@ -1,3 +1,11 @@
+## v1.0.122
+
+v1.0.122 (2026-05-04)
+Fixed:
+- 回退 polling_loop 架构至 v1.0.120 稳定版（app.run_polling()）
+- 增加保活机制：polling 异常自动递归重启 Application
+- 保留 HTTPXRequest 代理配置，解决频繁掉线问题
+
 ## v1.0.121
 
 v1.0.121 (2026-05-04)
