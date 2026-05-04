@@ -275,7 +275,7 @@ def main():
     
     # 显式配置代理（避免环境变量不可靠）
     proxy_url = "http://127.0.0.1:7890"
-    http_client = httpx.AsyncClient(proxies={"http://": proxy_url, "https://": proxy_url})
+    http_client = httpx.AsyncClient(proxy=proxy_url)
     
     # API 请求连接池（发消息/编辑消息等）—— 独立于 polling，避免连接池竞争
     request = HTTPXRequest(
