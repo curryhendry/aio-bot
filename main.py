@@ -4,6 +4,7 @@ from telegram import Update, BotCommand, ReplyKeyboardMarkup, KeyboardButton, In
 from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes, ConversationHandler
 from telegram.request import HTTPXRequest
+import httpx
 from config import BOT_TOKEN, PORT, DB_FILE, SEARCH_WAIT, LEGO_INPUT, restricted, logger, CHANGELOG_FILE, ALLOWED_IDS
 
 # 抑制 httpx 轮询日志刷屏
@@ -272,8 +273,13 @@ async def post_init(app):
 def main():
     if not os.path.exists(DB_FILE): init_db()
     
+    # 显式配置代理（避免环境变量不可靠）
+    proxy_url = "http://127.0.0.1:7890"
+    http_client = httpx.AsyncClient(proxies={"http://": proxy_url, "https://": proxy_url})
+    
     # API 请求连接池（发消息/编辑消息等）—— 独立于 polling，避免连接池竞争
     request = HTTPXRequest(
+        client=http_client,
         connection_pool_size=8,
         connect_timeout=10,
         read_timeout=30,
@@ -282,6 +288,7 @@ def main():
     )
     # Polling 专用连接池 —— getUpdates 长轮询独立连接，不会阻塞 API 调用
     get_updates_request = HTTPXRequest(
+        client=http_client,
         connection_pool_size=1,
         connect_timeout=10,
         read_timeout=60,
