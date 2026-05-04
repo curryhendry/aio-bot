@@ -341,6 +341,6 @@ def main():
             logging.error(f"Polling 异常，5秒后重启: {e}")
             import time; time.sleep(5)
             main()  # 重建全部，重新进入 _run
-    _run()才跳出循环
+    _run()
 
 if __name__ == '__main__': main()
