@@ -322,6 +322,6 @@ def main():
         app.add_handler(image.get_handler())
 
     threading.Thread(target=run_flask, daemon=True).start()
-    import asyncio; asyncio.get_event_loop().run_until_complete(app.run_polling()))
+    app.run_polling()
 
 if __name__ == '__main__': main()
