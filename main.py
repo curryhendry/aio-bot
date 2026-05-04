@@ -289,6 +289,11 @@ async def polling_loop(app):
                 await app.updater.stop()
             except Exception:
                 pass
+            # 等待 Updater 完全停止后再重试，避免 "already running" 循环
+            for _ in range(20):  # 最多等 10 秒
+                if not app.updater.running.is_set():
+                    break
+                await asyncio.sleep(0.5)
 
 
 def main():
