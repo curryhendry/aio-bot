@@ -1,3 +1,11 @@
+## v1.0.123
+
+v1.0.123 (2026-05-04)
+Fixed:
+- 修复 main.py line 344 SyntaxError（中文注释混入代码）
+- 修复 PTB 22.7 run_polling() 调用方式（同步方法，非协程）
+- 调用 deleteWebhook 清理 Telegram 服务器端旧 polling 状态，解决 Conflict 错误
+
 ## v1.0.122
 
 v1.0.122 (2026-05-04)
