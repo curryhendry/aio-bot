@@ -272,17 +272,28 @@ async def post_init(app):
 def main():
     if not os.path.exists(DB_FILE): init_db()
     
-    # 自定义 HTTPXRequest：代理 + 连接池
-    proxy_url = os.getenv('HTTPS_PROXY', 'http://192.168.100.1:7890')
+    # API 请求连接池（发消息/编辑消息等）—— 独立于 polling，避免连接池竞争
     request = HTTPXRequest(
-        connection_pool_size=128,
-        connect_timeout=30,
+        connection_pool_size=8,
+        connect_timeout=10,
+        read_timeout=30,
+        write_timeout=10,
+        pool_timeout=10,
+    )
+    # Polling 专用连接池 —— getUpdates 长轮询独立连接，不会阻塞 API 调用
+    get_updates_request = HTTPXRequest(
+        connection_pool_size=1,
+        connect_timeout=10,
         read_timeout=60,
-        write_timeout=30,
-        pool_timeout=30,
+        write_timeout=10,
+        pool_timeout=10,
     )
     
-    app = Application.builder().token(BOT_TOKEN).request(request).post_init(post_init).build()
+    app = Application.builder().token(BOT_TOKEN) \
+        .request(request) \
+        .get_updates_request(get_updates_request) \
+        .post_init(post_init) \
+        .build()
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("reboot", reboot_cmd))
