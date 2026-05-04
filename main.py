@@ -269,20 +269,53 @@ async def post_init(app):
         except Exception as e:
             logging.warning(f"上线通知发送失败: {e}")
 
+
+async def polling_loop(app):
+    """带自动恢复的 polling 循环——网络抖动后自动重连"""
+    await app.initialize()
+    await app.start()
+    
+    while True:
+        try:
+            await app.updater.start_polling(bootstrap_retries=3)
+            logging.info("Polling 已启动，等待消息...")
+            # 等待 updater 停止（updater.running 是 asyncio.Event）
+            while app.updater.running:
+                await asyncio.sleep(1)
+        except Exception as e:
+            logging.error(f"Polling 异常，5秒后重启: {e}")
+            await asyncio.sleep(5)
+            try:
+                await app.updater.stop()
+            except Exception:
+                pass
+
+
 def main():
     if not os.path.exists(DB_FILE): init_db()
     
-    # 自定义 HTTPXRequest：代理 + 连接池
-    proxy_url = os.getenv('HTTPS_PROXY', 'http://192.168.100.1:7890')
+    # API 请求连接池（发消息/编辑消息等）—— 独立于 polling，避免连接池竞争
     request = HTTPXRequest(
-        connection_pool_size=128,
-        connect_timeout=30,
+        connection_pool_size=8,
+        connect_timeout=10,
+        read_timeout=30,
+        write_timeout=10,
+        pool_timeout=10,
+    )
+    # Polling 专用连接池 —— getUpdates 长轮询独立连接，不会阻塞 API 调用
+    get_updates_request = HTTPXRequest(
+        connection_pool_size=1,
+        connect_timeout=10,
         read_timeout=60,
-        write_timeout=30,
-        pool_timeout=30,
+        write_timeout=10,
+        pool_timeout=10,
     )
     
-    app = Application.builder().token(BOT_TOKEN).request(request).post_init(post_init).build()
+    app = Application.builder().token(BOT_TOKEN) \
+        .request(request) \
+        .get_updates_request(get_updates_request) \
+        .post_init(post_init) \
+        .build()
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("reboot", reboot_cmd))
@@ -322,6 +355,6 @@ def main():
         app.add_handler(image.get_handler())
 
     threading.Thread(target=run_flask, daemon=True).start()
-    app.run_polling()
+    asyncio.run(polling_loop(app))
 
 if __name__ == '__main__': main()

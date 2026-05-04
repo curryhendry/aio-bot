@@ -1,3 +1,11 @@
+## v1.0.124
+
+v1.0.124 (2026-05-04)
+Fixed:
+- 真正回滚到 v1.0.120 稳定版（恢复两个独立 HTTPXRequest + polling_loop 自动恢复机制）
+- 修复容器缺少 Docker socket 挂载导致 MeTube/FlareSolverr 状态检查失败
+- 修复容器缺少 cookies/downloads 目录挂载
+
 ## v1.0.123
 
 v1.0.123 (2026-05-04)
