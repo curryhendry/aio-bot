@@ -4,7 +4,6 @@ from telegram import Update, BotCommand, ReplyKeyboardMarkup, KeyboardButton, In
 from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes, ConversationHandler
 from telegram.request import HTTPXRequest
-import httpx
 from config import BOT_TOKEN, PORT, DB_FILE, SEARCH_WAIT, LEGO_INPUT, restricted, logger, CHANGELOG_FILE, ALLOWED_IDS
 
 # 抑制 httpx 轮询日志刷屏
@@ -273,34 +272,17 @@ async def post_init(app):
 def main():
     if not os.path.exists(DB_FILE): init_db()
     
-    # 自定义 HTTPXRequest：禁用 SSL 验证（绕过代理证书问题）
-    class MyHTTPXRequest(HTTPXRequest):
-        def _create_client(self, **kwargs):
-            kwargs.setdefault('verify', False)
-            return super()._create_client(**kwargs)
-    
-    # API 请求连接池（发消息/编辑消息等）—— 独立于 polling，避免连接池竞争
-    request = MyHTTPXRequest(
-        connection_pool_size=8,
-        connect_timeout=10,
-        read_timeout=30,
-        write_timeout=10,
-        pool_timeout=10,
-    )
-    # Polling 专用连接池 —— getUpdates 长轮询独立连接，不会阻塞 API 调用
-    get_updates_request = MyHTTPXRequest(
-        connection_pool_size=1,
-        connect_timeout=10,
+    # 自定义 HTTPXRequest：代理 + 连接池
+    proxy_url = os.getenv('HTTPS_PROXY', 'http://192.168.100.1:7890')
+    request = HTTPXRequest(
+        connection_pool_size=128,
+        connect_timeout=30,
         read_timeout=60,
-        write_timeout=10,
-        pool_timeout=10,
+        write_timeout=30,
+        pool_timeout=30,
     )
     
-    app = Application.builder().token(BOT_TOKEN) \
-        .request(request) \
-        .get_updates_request(get_updates_request) \
-        .post_init(post_init) \
-        .build()
+    app = Application.builder().token(BOT_TOKEN).request(request).post_init(post_init).build()
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("reboot", reboot_cmd))
@@ -340,14 +322,6 @@ def main():
         app.add_handler(image.get_handler())
 
     threading.Thread(target=run_flask, daemon=True).start()
-    # 保活：polling 异常后递归重启（深度最多 1，无风险）
-    def _run():
-        try:
-            app.run_polling()
-        except Exception as e:
-            logging.error(f"Polling 异常，5秒后重启: {e}")
-            import time; time.sleep(5)
-            main()  # 重建全部，重新进入 _run
-    _run()
+    app.run_polling()
 
 if __name__ == '__main__': main()
