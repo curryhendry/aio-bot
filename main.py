@@ -279,7 +279,9 @@ async def polling_loop(app):
         try:
             await app.updater.start_polling(bootstrap_retries=3)
             logging.info("Polling 已启动，等待消息...")
-            await app.updater.is_polling_active.wait()
+            # 等待 updater 停止（updater.running 是 asyncio.Event）
+            while app.updater.running:
+                await asyncio.sleep(1)
         except Exception as e:
             logging.error(f"Polling 异常，5秒后重启: {e}")
             await asyncio.sleep(5)
