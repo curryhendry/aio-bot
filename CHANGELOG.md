@@ -1,3 +1,9 @@
+## v1.0.125
+
+v1.0.125 (2026-05-04)
+Fixed:
+- 修复 polling_loop 重连逻辑：updater.running 变 False 时先 stop 清理，再等待 30 秒让 Telegram 清理旧连接，避免 Conflict 错误循环
+
 ## v1.0.124
 
 v1.0.124 (2026-05-04)

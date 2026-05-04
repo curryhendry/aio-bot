@@ -282,6 +282,14 @@ async def polling_loop(app):
             # 等待 updater 停止（updater.running 是 asyncio.Event）
             while app.updater.running:
                 await asyncio.sleep(1)
+            # [Fix] updater.running 变 False 时，先 stop 清理，再等待 30 秒让 Telegram 清理旧连接
+            logging.warning("Polling 已停止，准备重连...")
+            try:
+                await app.updater.stop()
+            except Exception:
+                pass
+            logging.info("等待 30 秒让 Telegram 清理旧连接...")
+            await asyncio.sleep(30)
         except Exception as e:
             logging.error(f"Polling 异常，5秒后重启: {e}")
             await asyncio.sleep(5)
