@@ -1,3 +1,9 @@
+## v1.0.126
+
+v1.0.126 (2026-05-05)
+Fixed:
+- 修复 polling_loop 重连逻辑：不仅 stop updater，还要 stop/start Application，彻底清理旧状态避免 Conflict 错误
+
 ## v1.0.125
 
 v1.0.125 (2026-05-04)
