@@ -1,3 +1,11 @@
+## v1.0.121
+
+v1.0.121 (2026-05-04)
+Fixed:
+- 修复 polling_loop 自动恢复机制写崩（Updater 重复启动、HTTPXRequest 未初始化）
+- 修复 polling_loop 生命周期管理：initialize/start 移出主循环，只执行一次
+- 修复 polling_loop 使用不存在的 is_polling_active 属性，改为 updater.running
+
 ## v1.0.120
 
 v1.0.120 (2026-04-30)
