@@ -322,13 +322,6 @@ def main():
         app.add_handler(image.get_handler())
 
     threading.Thread(target=run_flask, daemon=True).start()
-    
-    # 保活：polling 异常后等待重试，避免无限退出
-    while True:
-        try:
-            app.run_polling()
-        except Exception as e:
-            logging.error(f"Polling 异常，5秒后重启: {e}")
-            import time; time.sleep(5)
+    import asyncio; asyncio.run(app.run_polling()))
 
 if __name__ == '__main__': main()
