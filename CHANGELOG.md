@@ -1,3 +1,10 @@
+## v1.0.127
+
+v1.0.127 (2026-05-05)
+Fixed:
+- 修复 polling_loop 未调用 post_init，导致容器启动时不会发送上线通知（/start 内容）
+- post_init 只在 run_polling() 中自动调用，手动调用 initialize()/start() 不会触发
+
 ## v1.0.126
 
 v1.0.126 (2026-05-05)

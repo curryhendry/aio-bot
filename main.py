@@ -274,6 +274,8 @@ async def polling_loop(app):
     """带自动恢复的 polling 循环——网络抖动后自动重连"""
     await app.initialize()
     await app.start()
+    # [Fix] 手动调用 post_init（initialize/start 不会自动调用，只有 run_polling 才会）
+    await post_init(app)
     
     while True:
         try:
@@ -298,6 +300,7 @@ async def polling_loop(app):
             logging.info("重新初始化 Application...")
             await app.initialize()
             await app.start()
+            await post_init(app)
         except Exception as e:
             logging.error(f"Polling 异常，5秒后重启: {e}")
             await asyncio.sleep(5)
