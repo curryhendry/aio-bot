@@ -203,7 +203,8 @@ async def handle_callback(u, c):
         credits = detail.get('credits', {})
         if credits:
             director = [cr['name'] for cr in credits.get('crew', []) if cr.get('job') == 'Director']
-            cast = [cr['name'] for cr in credits.get('cast', [])[:4]]
+            cast = [cr.get('name') or cr.get('original_name') or '' for cr in credits.get('cast', [])[:4]]
+            cast = [n for n in cast if n]
             if director: info_lines.append(f"🎬 导演: {', '.join(director)}")
             if cast: info_lines.append(f"🎭 主演: {', '.join(cast)}")
             
