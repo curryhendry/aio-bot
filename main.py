@@ -326,6 +326,7 @@ def main():
         read_timeout=30,
         write_timeout=10,
         pool_timeout=10,
+        proxy=os.getenv("HTTPS_PROXY", os.getenv("HTTP_PROXY", "")),
     )
     # Polling 专用连接池 —— getUpdates 长轮询独立连接，不会阻塞 API 调用
     get_updates_request = HTTPXRequest(
@@ -334,6 +335,7 @@ def main():
         read_timeout=60,
         write_timeout=10,
         pool_timeout=10,
+        proxy=os.getenv("HTTPS_PROXY", os.getenv("HTTP_PROXY", "")),
     )
     
     app = Application.builder().token(BOT_TOKEN) \
