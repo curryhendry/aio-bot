@@ -1,3 +1,10 @@
+## v1.0.129
+
+v1.0.129 (2026-05-06)
+Fixed:
+- 修复 proxy 配置：main.py HTTPXRequest 改用 config.PROXY（支持空字符串自动转 None），删除 os.getenv() 读取环境变量
+- config.py.template 加 PROXY 配置项（默认空）
+
 ## v1.0.128
 
 v1.0.128 (2026-05-05)

@@ -4,7 +4,7 @@ from telegram import Update, BotCommand, ReplyKeyboardMarkup, KeyboardButton, In
 from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes, ConversationHandler
 from telegram.request import HTTPXRequest
-from config import BOT_TOKEN, PORT, DB_FILE, SEARCH_WAIT, LEGO_INPUT, restricted, logger, CHANGELOG_FILE, ALLOWED_IDS
+from config import BOT_TOKEN, PORT, DB_FILE, SEARCH_WAIT, LEGO_INPUT, restricted, logger, CHANGELOG_FILE, ALLOWED_IDS, PROXY
 
 # 抑制 httpx 轮询日志刷屏
 logging.getLogger("httpx").setLevel(logging.WARNING)
@@ -326,7 +326,7 @@ def main():
         read_timeout=30,
         write_timeout=10,
         pool_timeout=10,
-        proxy=os.getenv("HTTPS_PROXY", os.getenv("HTTP_PROXY", "")),
+        proxy=PROXY or None,
     )
     # Polling 专用连接池 —— getUpdates 长轮询独立连接，不会阻塞 API 调用
     get_updates_request = HTTPXRequest(
@@ -335,7 +335,7 @@ def main():
         read_timeout=60,
         write_timeout=10,
         pool_timeout=10,
-        proxy=os.getenv("HTTPS_PROXY", os.getenv("HTTP_PROXY", "")),
+        proxy=PROXY or None,
     )
     
     app = Application.builder().token(BOT_TOKEN) \
